@@ -33,241 +33,16 @@ func main() {
 	)
 
 	myApp := app.New()
-
-	// window := app.NewWindow("Hello")
-
-	// hello := widget.NewLabel("Hello Fyne!")
-	// window.SetContent(container.NewVBox(
-	// 	hello,
-	// 	widget.NewButton("Hi!", func() {
-	// 		hello.SetText("Welcome :)")
-	// 	}),
-	// ))
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Canvas")
-	// myCanvas := myWindow.Canvas()
-
-	// green := color.NRGBA{R: 0, G: 180, B: 0, A: 255}
-	// text := canvas.NewText("Text", green)
-	// text.TextStyle.Bold = true
-	// myCanvas.SetContent(text)
-	// go changeContent(myCanvas)
-
-	// myWindow.Resize(fyne.NewSize(100, 100))
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Box Layout")
-
-	// text1 := canvas.NewText("Hello", color.White)
-	// text2 := canvas.NewText("There", color.White)
-	// text3 := canvas.NewText("(right)", color.White)
-	// content := container.New(layout.NewHBoxLayout(), text1, text2, layout.NewSpacer(), text3)
-
-	// text4 := canvas.NewText("centered", color.White)
-	// centered := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), text4, layout.NewSpacer())
-	// myWindow.SetContent(container.New(layout.NewVBoxLayout(), content, centered))
-	// myWindow.ShowAndRun()
-
-	// myApp := app.New()
-	// myWindow := myApp.NewWindow("Grid Layout")
-
-	// text1 := canvas.NewText("1", color.White)
-	// text2 := canvas.NewText("2", color.White)
-	// text3 := canvas.NewText("3", color.White)
-	// grid := container.New(layout.NewGridLayout(2), text1, text2, text3)
-	// myWindow.SetContent(grid)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Grid Wrap Layout")
-
-	// text1 := canvas.NewText("1", color.White)
-	// text2 := canvas.NewText("2", color.White)
-	// text3 := canvas.NewText("3", color.White)
-	// grid := container.New(layout.NewGridWrapLayout(fyne.NewSize(50, 50)),
-	// 	text1, text2, text3)
-	// myWindow.SetContent(grid)
-
-	// myWindow.Resize(fyne.NewSize(180, 75))
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Border Layout")
-
-	// top := canvas.NewText("top bar", color.White)
-	// left := canvas.NewText("left", color.White)
-	// middle := canvas.NewText("content", color.White)
-	// content := container.New(layout.NewBorderLayout(top, nil, left, nil),
-	// 	top, left, middle)
-	// myWindow.SetContent(content)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Form Layout")
-
-	// label1 := canvas.NewText("Label 1", color.Black)
-	// value1 := canvas.NewText("Value", color.White)
-	// label2 := canvas.NewText("Label 2", color.Black)
-	// value2 := canvas.NewText("Something", color.White)
-	// grid := container.New(layout.NewFormLayout(), label1, value1, label2, value2)
-	// myWindow.SetContent(grid)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("TabContainer Widget")
-
-	// tabs := container.NewAppTabs(
-	// 	container.NewTabItem("Tab 1", widget.NewLabel("Hello")),
-	// 	container.NewTabItem("Tab 2", widget.NewLabel("World!")),
-	// 	container.NewTabItem("Pouet", widget.NewLabel("This is fuuuun")),
-	// )
-
-	// tabs.Append(container.NewTabItemWithIcon("Home", theme.HomeIcon(), widget.NewLabel("Home tab")))
-
-	// // tabs.SetTabLocation(container.TabLocationLeading)
-
-	// myWindow.SetContent(tabs)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Entry Widget")
-
-	// content := container.NewVBox(
-	// 	widget.NewLabel("The top row of the VBox"),
-	// 	container.NewHBox(
-	// 		widget.NewLabel("Label 1"),
-	// 		widget.NewLabel("Label 2"),
-	// 	),
-	// )
-
-	// content.Add(widget.NewButton("Add more items", func() {
-	// 	content.Add(widget.NewLabel("Added"))
-	// }))
-
-	// myWindow.SetContent(content)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Button Widget")
-
-	// content := widget.NewButton("click me", func() {
-	// 	log.Println("tapped")
-	// })
-
-	// //content := widget.NewButtonWithIcon("Home", theme.HomeIcon(), func() {
-	// //	log.Println("tapped home")
-	// //})
-
-	// myWindow.SetContent(content)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Entry Widget")
-
-	// input := widget.NewEntry()
-	// input.SetPlaceHolder("Enter text...")
-	// input2 := widget.NewEntry()
-	// input2.SetPlaceHolder("Email")
-
-	// content := container.NewVBox(input, input2, widget.NewButton("Save", func() {
-	// 	log.Println("Content was:", input.Text)
-	// }))
-
-	// myWindow.SetContent(content)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("ProgressBar Widget")
-
-	// progress := widget.NewProgressBar()
-	// infinite := widget.NewProgressBarInfinite()
-
-	// go func() {
-	// 	for i := 0.0; i <= 1.0; i += 0.01 {
-	// 		time.Sleep(time.Millisecond * 250)
-	// 		progress.SetValue(i)
-	// 	}
-	// }()
-
-	// myWindow.SetContent(container.NewVBox(progress, infinite))
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Toolbar Widget")
-
-	// toolbar := widget.NewToolbar(
-	// 	widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
-	// 		log.Println("New document")
-	// 	}),
-	// 	widget.NewToolbarSeparator(),
-	// 	widget.NewToolbarAction(theme.ContentCutIcon(), func() {}),
-	// 	widget.NewToolbarAction(theme.ContentCopyIcon(), func() {}),
-	// 	widget.NewToolbarAction(theme.ContentPasteIcon(), func() {}),
-	// 	widget.NewToolbarSpacer(),
-	// 	widget.NewToolbarAction(theme.HelpIcon(), func() {
-	// 		log.Println("Display help")
-	// 	}),
-	// )
-
-	// content := container.NewBorder(toolbar, nil, nil, nil, widget.NewLabel("Content"))
-	// myWindow.SetContent(content)
-
-	// ---
-
-	// var data = []string{"a", "string", "list"}
-
-	// myWindow := myApp.NewWindow("List Widget")
-
-	// list := widget.NewList(
-	// 	func() int {
-	// 		return len(data)
-	// 	},
-	// 	func() fyne.CanvasObject {
-	// 		return widget.NewLabel("template")
-	// 	},
-	// 	func(i widget.ListItemID, o fyne.CanvasObject) {
-	// 		o.(*widget.Label).SetText(data[i])
-	// 	})
-
-	// myWindow.SetContent(list)
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Simple")
-
-	// str := binding.NewString()
-	// str.Set("Initial value")
-
-	// text := widget.NewLabelWithData(str)
-	// myWindow.SetContent(text)
-
-	// go func() {
-	// 	time.Sleep(time.Second * 2)
-	// 	str.Set("A new string")
-	// }()
-
-	// ---
-
-	// myWindow := myApp.NewWindow("Two Way")
-
-	// str := binding.NewString()
-	// str.Set("Hi!")
-
-	// myWindow.SetContent(container.NewVBox(
-	// 	widget.NewLabelWithData(str),
-	// 	widget.NewEntryWithData(str),
-	// ))
-
-	// ---
-
-	myWindow := myApp.NewWindow("List Data")
+	myWindow := myApp.NewWindow("Happy Bank Simulator")
+	myWindow.Resize(fyne.NewSize(1024, 768))
 
 	data := binding.BindStringList(
 		&[]string{"Item 1", "Item 2", "Item 3"},
 	)
+
+	// template := container.NewHBox(
+	// 	widget.NewLabel("template"),
+	// )Ÿ
 
 	list := widget.NewListWithData(data,
 		func() fyne.CanvasObject {
@@ -277,12 +52,31 @@ func main() {
 			o.(*widget.Label).Bind(i.(binding.String))
 		})
 
-	add := widget.NewButton("Append", func() {
-		val := fmt.Sprintf("Item %d", data.Length()+1)
-		data.Append(val)
-	})
-	myWindow.SetContent(container.NewBorder(nil, add, nil, nil, list))
+	nameEntry := widget.NewEntry()
+	amountEntry := widget.NewEntry()
 
+	form := &widget.Form{
+		Items: []*widget.FormItem{ // we can specify items in the constructor
+			{Text: "Nom", Widget: nameEntry},
+			{Text: "Montant", Widget: amountEntry}},
+		OnSubmit: func() { // optional, handle form submission
+			fmt.Println("Form submitted:", nameEntry.Text, amountEntry.Text)
+			val := fmt.Sprintf("%d - %s %s", data.Length()+1, nameEntry.Text, amountEntry.Text)
+			data.Append(val)
+		},
+	}
+
+	borrowersTabContent := container.NewBorder(form, nil, nil, nil, list)
+
+	tabs := container.NewAppTabs(
+		container.NewTabItem("Débiteurs", borrowersTabContent),
+		container.NewTabItem("Créanciers", widget.NewLabel("Tableau des créanciers")),
+		container.NewTabItem("Assureurs", widget.NewLabel("Tableau des assureurs")),
+	)
+
+	tabs.SetTabLocation(container.TabLocationLeading)
+
+	myWindow.SetContent(tabs)
 	myWindow.ShowAndRun()
 
 	// Create test loan
