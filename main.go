@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"happy_bank_simulator/database"
+	// "happy_bank_simulator/factories"
 	"happy_bank_simulator/models"
+
 	// "happy_bank_simulator/ui"
 
 	"gorm.io/gorm"
@@ -10,24 +13,23 @@ import (
 
 func main() {
 	db := database.InitDB()
+
 	db.AutoMigrate(
 		&models.Borrower{},
-		&models.Loan{},
 		&models.Lender{},
 		&models.Insurer{},
+		&models.Loan{},
 	)
 
-	// Create test loan
-	// startDate := "27/06/2021"
-	// endDate := "27/06/2022"
-	// duration := 12
-	// amount := 10000
+	// factories.CreateSeedState()
 
-	// models.NewLoan(startDate, endDate, int32(duration), float64(amount))
+	var borrower models.Borrower
+	db.First(&borrower)
+	fmt.Println(borrower)
 
-	// dateString := "01/02/2021"
-	// date, _ := time.Parse("02/01/2006", dateString)
-	// fmt.Println(date.Format("2 Jan. 2006"))
+	var borrowers []models.Borrower
+	db.Find(&borrowers)
+	fmt.Println(len(borrowers))
 
 	// ui.InitApp()
 }

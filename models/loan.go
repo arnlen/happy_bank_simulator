@@ -34,7 +34,7 @@ func (instance *Loan) Save() *Loan {
 	return instance
 }
 
-func NewLoan(startDate string, endDate string, duration int32, amount float64, lender Lender, insurer Insurer) *Loan {
+func NewLoan(startDate string, endDate string, duration int32, amount float64, borrower *Borrower, lender *Lender, insurer *Insurer) *Loan {
 	initialDeposit := amount / 10
 	creditRate := 0.3
 	insuranceRate := 0.3
@@ -42,8 +42,9 @@ func NewLoan(startDate string, endDate string, duration int32, amount float64, l
 	monthlyInsurance := services.CalculateMonthlyInsurancePayment(insuranceRate, float64(duration), float64(amount))
 
 	return &Loan{
-		InsurerID:        insurer.ID,
+		BorrowerID:       borrower.ID,
 		LenderID:         lender.ID,
+		InsurerID:        insurer.ID,
 		StartDate:        startDate,
 		EndDate:          endDate,
 		Duration:         duration,
@@ -56,8 +57,8 @@ func NewLoan(startDate string, endDate string, duration int32, amount float64, l
 	}
 }
 
-func CreateLoan(startDate string, endDate string, duration int32, amount float64, lender Lender, insurer Insurer) *Loan {
-	loan := NewLoan(startDate, endDate, duration, amount, lender, insurer)
+func CreateLoan(startDate string, endDate string, duration int32, amount float64, borrower *Borrower, lender *Lender, insurer *Insurer) *Loan {
+	loan := NewLoan(startDate, endDate, duration, amount, borrower, lender, insurer)
 	result := database.GetDB().Create(&loan)
 
 	if loan.ID == 0 || result.RowsAffected == 0 {
