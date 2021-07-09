@@ -11,6 +11,8 @@ import (
 type Loan struct {
 	gorm.Model
 	BorrowerID       uint
+	LenderID         uint
+	InsurerID        uint
 	StartDate        string
 	EndDate          string
 	Duration         int32
@@ -22,17 +24,17 @@ type Loan struct {
 	MonthlyInsurance float64
 }
 
-func (l *Loan) Save() *Loan {
-	result := database.GetDB().Save(l)
+func (instance *Loan) Save() *Loan {
+	result := database.GetDB().Save(instance)
 
-	if l.ID == 0 || result.RowsAffected == 0 {
+	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
 	}
 
-	return l
+	return instance
 }
 
-func NewLoan(startDate string, endDate string, duration int32, amount float64) *Loan {
+func NewLoan(startDate string, endDate string, duration int32, amount float64, lender Lender, insurer Insurer) *Loan {
 	initialDeposit := amount / 10
 	creditRate := 0.3
 	insuranceRate := 0.3
@@ -40,6 +42,8 @@ func NewLoan(startDate string, endDate string, duration int32, amount float64) *
 	monthlyInsurance := services.CalculateMonthlyInsurancePayment(insuranceRate, float64(duration), float64(amount))
 
 	return &Loan{
+		InsurerID:        insurer.ID,
+		LenderID:         lender.ID,
 		StartDate:        startDate,
 		EndDate:          endDate,
 		Duration:         duration,
@@ -52,8 +56,8 @@ func NewLoan(startDate string, endDate string, duration int32, amount float64) *
 	}
 }
 
-func CreateLoan(startDate string, endDate string, duration int32, amount float64) *Loan {
-	loan := NewLoan(startDate, endDate, duration, amount)
+func CreateLoan(startDate string, endDate string, duration int32, amount float64, lender Lender, insurer Insurer) *Loan {
+	loan := NewLoan(startDate, endDate, duration, amount, lender, insurer)
 	result := database.GetDB().Create(&loan)
 
 	if loan.ID == 0 || result.RowsAffected == 0 {
