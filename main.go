@@ -1,14 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"happy_bank_simulator/database"
-	// "happy_bank_simulator/factories"
 	"happy_bank_simulator/models"
 
-	// "happy_bank_simulator/ui"
-
-	"gorm.io/gorm"
+	"happy_bank_simulator/ui"
 )
 
 func main() {
@@ -21,22 +17,15 @@ func main() {
 		&models.Loan{},
 	)
 
-	// factories.CreateSeedState()
-
-	var borrower models.Borrower
-	db.First(&borrower)
-	fmt.Println(borrower)
-
 	var borrowers []models.Borrower
+	var lenders []models.Lender
+	var insurers []models.Insurer
+	var loans []models.Loan
+
 	db.Find(&borrowers)
-	fmt.Println(len(borrowers))
+	db.Find(&lenders)
+	db.Find(&insurers)
+	db.Find(&loans)
 
-	// ui.InitApp()
-}
-
-type MonthlyPayment struct {
-	gorm.Model
-	Loan     models.Loan
-	Borrower models.Borrower
-	Amount   float32
+	ui.InitApp(borrowers, lenders, insurers, loans)
 }
