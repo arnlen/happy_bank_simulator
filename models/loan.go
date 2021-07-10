@@ -10,8 +10,11 @@ import (
 
 type Loan struct {
 	gorm.Model
+	Borrower         Borrower
 	BorrowerID       uint
+	Lender           Lender
 	LenderID         uint
+	Insurer          Insurer
 	InsurerID        uint
 	StartDate        string
 	EndDate          string
