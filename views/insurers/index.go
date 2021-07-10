@@ -40,5 +40,9 @@ func Index(insurers []models.Insurer) *fyne.Container {
 	table.SetColumnWidth(1, 250)
 	table.SetColumnWidth(2, 100)
 
-	return container.NewBorder(nil, nil, nil, nil, table)
+	newButton := widget.NewButton("Nouvel assureur", func() {
+		fmt.Println("New button")
+	})
+
+	return container.NewBorder(newButton, nil, nil, nil, table)
 }

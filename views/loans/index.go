@@ -45,5 +45,9 @@ func Index(loans []models.Loan) *fyne.Container {
 	table.SetColumnWidth(3, 250)
 	table.SetColumnWidth(4, 100)
 
-	return container.NewBorder(nil, nil, nil, nil, table)
+	newButton := widget.NewButton("Nouveau prêt", func() {
+		fmt.Println("New button")
+	})
+
+	return container.NewBorder(newButton, nil, nil, nil, table)
 }
