@@ -24,21 +24,6 @@ func (instance *Borrower) Save() *Borrower {
 	return instance
 }
 
-func NewBorrower(name string, balance float64) *Borrower {
-	return &Borrower{
-		Name:    name,
-		Loans:   []Loan{},
-		Balance: balance,
-	}
-}
-
-func CreateBorrower(name string, balance float64) *Borrower {
-	borrower := NewBorrower(name, balance)
-	result := database.GetDB().Create(&borrower)
-
-	if borrower.ID == 0 || result.RowsAffected == 0 {
-		log.Fatal(result.Error)
-	}
-
-	return borrower
+func (instance *Borrower) Create() *gorm.DB {
+	return database.GetDB().Create(instance)
 }

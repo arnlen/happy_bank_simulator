@@ -3,10 +3,9 @@ package main
 import (
 	"happy_bank_simulator/database"
 	// "happy_bank_simulator/factories"
-	"happy_bank_simulator/models"
-	"happy_bank_simulator/ui"
-
 	"gorm.io/gorm/clause"
+	"happy_bank_simulator/models"
+	"happy_bank_simulator/views"
 )
 
 func main() {
@@ -31,5 +30,5 @@ func main() {
 	db.Preload(clause.Associations).Find(&insurers)
 	db.Preload(clause.Associations).Find(&loans)
 
-	ui.InitApp(borrowers, lenders, insurers, loans)
+	views.InitApp(borrowers, lenders, insurers, loans)
 }
