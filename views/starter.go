@@ -6,6 +6,7 @@ import (
 	viewInsurers "happy_bank_simulator/views/insurers"
 	viewLenders "happy_bank_simulator/views/lenders"
 	viewLoans "happy_bank_simulator/views/loans"
+	overview "happy_bank_simulator/views/overview"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -17,7 +18,7 @@ func InitApp(borrowers []models.Borrower, lenders []models.Lender, insurers []mo
 	myWindow := myApp.NewWindow("Happy Bank Simulator")
 	myWindow.Resize(fyne.NewSize(1200, 700))
 
-	overviewView := Overview(len(loans), len(borrowers), len(lenders), len(insurers))
+	overviewView := overview.Render()
 	loansView := viewLoans.Index(loans)
 	borrowersView := viewBorrowers.Index(borrowers)
 	lendersView := viewLenders.Index(lenders)

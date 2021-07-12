@@ -2,7 +2,6 @@ package main
 
 import (
 	"happy_bank_simulator/database"
-	"happy_bank_simulator/factories"
 	"happy_bank_simulator/initializers"
 	"happy_bank_simulator/models"
 	"happy_bank_simulator/views"
@@ -13,8 +12,6 @@ import (
 func main() {
 	initializers.InitDB()
 	db := database.GetDB()
-
-	factories.CreateSeedState()
 
 	var borrowers []models.Borrower
 	var lenders []models.Lender
