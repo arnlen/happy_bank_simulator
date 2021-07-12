@@ -2,25 +2,19 @@ package main
 
 import (
 	"happy_bank_simulator/database"
-	// "happy_bank_simulator/factories"
+	"happy_bank_simulator/factories"
+	"happy_bank_simulator/initializers"
 	"happy_bank_simulator/models"
 	"happy_bank_simulator/views"
 
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 func main() {
-	db := database.InitDB()
+	initializers.InitDB()
+	db := database.GetDB()
 
-	db.AutoMigrate(
-		&models.Borrower{},
-		&models.Lender{},
-		&models.Insurer{},
-		&models.Loan{},
-	)
-
-	// factories.CreateSeedState()
+	factories.CreateSeedState()
 
 	var borrowers []models.Borrower
 	var lenders []models.Lender
@@ -33,13 +27,4 @@ func main() {
 	db.Preload(clause.Associations).Find(&loans)
 
 	views.InitApp(borrowers, lenders, insurers, loans)
-}
-
-func DropBD() {
-	db := database.InitDB()
-
-	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Loan{})
-	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Borrower{})
-	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Lender{})
-	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Insurer{})
 }

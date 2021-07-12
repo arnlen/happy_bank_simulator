@@ -2,6 +2,8 @@ package views
 
 import (
 	"fmt"
+	"happy_bank_simulator/database"
+	"happy_bank_simulator/initializers"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -11,7 +13,10 @@ import (
 
 func Overview(loansCounter int, borrowersCounter int, lendersCounter int, insurersCounter int) *fyne.Container {
 	wipeDatabaseButton := widget.NewButton("Vider la base de données", func() {
-		fmt.Println("Drop database")
+		database.DropBD()
+		fmt.Println("DP dropped")
+		initializers.InitDB()
+		fmt.Println("DP initialized")
 	})
 
 	populateDatabaseButton := widget.NewButton("Remplir la base", func() {

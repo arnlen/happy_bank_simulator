@@ -1,26 +1,32 @@
 package database
 
 import (
-	"log"
-
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 var (
-	db  *gorm.DB
-	err error
+	db        *gorm.DB
+	modelList []interface{}
 )
-
-func InitDB() *gorm.DB {
-	db, err = gorm.Open(sqlite.Open("database/happy_dev.db"), &gorm.Config{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return db
-}
 
 func GetDB() *gorm.DB {
 	return db
+}
+
+func SetDB(newDb *gorm.DB) {
+	db = newDb
+}
+
+func DropBD() {
+	for _, model := range modelList {
+		db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(model)
+	}
+}
+
+func SetModelList(newModelList []interface{}) {
+	modelList = newModelList
+}
+
+func GetModelList() []interface{} {
+	return modelList
 }
