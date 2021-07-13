@@ -2,38 +2,29 @@ package views
 
 import (
 	"fmt"
-	"happy_bank_simulator/models"
-	"strconv"
+	"happy_bank_simulator/app/borrowers"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
-func RenderIndex(borrowers []models.Borrower) *fyne.Container {
-	var borrowersTableData = [][]string{
-		{"ID", "Name", "Balance"}}
+// Initialize controller
+var borrowersController = borrowers.Controller{}
 
-	for _, borrower := range borrowers {
-		borrowerRow := []string{
-			strconv.Itoa(int(borrower.ID)),
-			borrower.Name,
-			fmt.Sprintf("%8.0f €", borrower.Balance),
-		}
-
-		borrowersTableData = append(borrowersTableData, borrowerRow)
-	}
+func RenderIndex() *fyne.Container {
+	borrowerTableData := borrowersController.GetBorrowerTableData()
 
 	table := widget.NewTable(
 		func() (int, int) {
-			return len(borrowersTableData), len(borrowersTableData[0])
+			return len(borrowerTableData), len(borrowerTableData[0])
 		},
 		func() fyne.CanvasObject {
 			item := widget.NewLabel("Template")
 			return item
 		},
 		func(cell widget.TableCellID, item fyne.CanvasObject) {
-			item.(*widget.Label).SetText(borrowersTableData[cell.Row][cell.Col])
+			item.(*widget.Label).SetText(borrowerTableData[cell.Row][cell.Col])
 		})
 
 	table.SetColumnWidth(0, 50)
@@ -46,11 +37,3 @@ func RenderIndex(borrowers []models.Borrower) *fyne.Container {
 
 	return container.NewBorder(newButton, nil, nil, nil, table)
 }
-
-// func new() {
-// 	dialog.NewCustom("Nouveau débiteur", "Annuler", renderNewForm(), fyne.CurrentApp().NewWindow())
-// }
-
-// func renderNewForm() fyne.CanvasObject {
-
-// }

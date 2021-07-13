@@ -1,8 +1,8 @@
 package factories
 
 import (
+	"happy_bank_simulator/database"
 	"happy_bank_simulator/models"
-	"happy_bank_simulator/services/database"
 
 	"happy_bank_simulator/services"
 

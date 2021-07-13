@@ -2,9 +2,10 @@ package overview
 
 import (
 	"fmt"
+	"happy_bank_simulator/database"
+	databaseHelpers "happy_bank_simulator/database/helpers"
 	"happy_bank_simulator/factories"
 	"happy_bank_simulator/models"
-	"happy_bank_simulator/services/database"
 
 	"gorm.io/gorm/clause"
 )
@@ -36,10 +37,10 @@ func (c *Controller) PopulateDatabase() {
 }
 
 func (c *Controller) WipeDatabase() {
-	database.DropBD()
+	databaseHelpers.DropBD()
 	fmt.Println("Database dropped")
 	database.InitDB()
 	fmt.Println("Database initialized")
-	database.MigrateDB()
+	databaseHelpers.MigrateDB()
 	fmt.Println("Database migrated")
 }

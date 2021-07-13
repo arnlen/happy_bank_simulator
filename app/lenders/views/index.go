@@ -2,38 +2,29 @@ package views
 
 import (
 	"fmt"
-	"happy_bank_simulator/models"
-	"strconv"
+	"happy_bank_simulator/app/lenders"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
-func Index(lenders []models.Lender) *fyne.Container {
-	var lendersTableData = [][]string{
-		{"ID", "Name", "Balance"}}
+// Initialize controller
+var lendersController = lenders.Controller{}
 
-	for _, lender := range lenders {
-		lenderRow := []string{
-			strconv.Itoa(int(lender.ID)),
-			lender.Name,
-			fmt.Sprintf("%8.0f €", lender.Balance),
-		}
-
-		lendersTableData = append(lendersTableData, lenderRow)
-	}
+func RenderIndex() *fyne.Container {
+	lenderTableData := lendersController.GetLenderTableData()
 
 	table := widget.NewTable(
 		func() (int, int) {
-			return len(lendersTableData), len(lendersTableData[0])
+			return len(lenderTableData), len(lenderTableData[0])
 		},
 		func() fyne.CanvasObject {
 			item := widget.NewLabel("Template")
 			return item
 		},
 		func(cell widget.TableCellID, item fyne.CanvasObject) {
-			item.(*widget.Label).SetText(lendersTableData[cell.Row][cell.Col])
+			item.(*widget.Label).SetText(lenderTableData[cell.Row][cell.Col])
 		})
 
 	table.SetColumnWidth(0, 50)

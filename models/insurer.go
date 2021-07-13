@@ -1,7 +1,7 @@
 package models
 
 import (
-	"happy_bank_simulator/services/database"
+	"happy_bank_simulator/database"
 	"log"
 
 	"gorm.io/gorm"
@@ -32,13 +32,6 @@ func NewInsurer(name string, balance float64) *Insurer {
 	}
 }
 
-func CreateInsurer(name string, balance float64) *Insurer {
-	insurer := NewInsurer(name, balance)
-	result := database.GetDB().Create(&insurer)
-
-	if insurer.ID == 0 || result.RowsAffected == 0 {
-		log.Fatal(result.Error)
-	}
-
-	return insurer
+func (instance *Insurer) Create() *gorm.DB {
+	return database.GetDB().Create(instance)
 }
