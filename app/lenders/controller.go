@@ -11,6 +11,14 @@ import (
 
 type Controller struct{}
 
+func (c *Controller) GetModelName(pluralize bool) string {
+	lenderModel := models.Lender{}
+	if pluralize {
+		return fmt.Sprintf("%ss", lenderModel.ModelName())
+	}
+	return lenderModel.ModelName()
+}
+
 func (c *Controller) GetLenderTableData() [][]string {
 	var lenders []models.Lender
 	database.GetDB().Preload(clause.Associations).Find(&lenders)

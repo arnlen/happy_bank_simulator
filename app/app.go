@@ -1,12 +1,17 @@
 package app
 
 import (
+	"happy_bank_simulator/app/borrowers"
 	borrowerViews "happy_bank_simulator/app/borrowers/views"
 	appHelpers "happy_bank_simulator/app/helpers"
+	"happy_bank_simulator/app/insurers"
 	insurerViews "happy_bank_simulator/app/insurers/views"
+	"happy_bank_simulator/app/lenders"
 	lenderViews "happy_bank_simulator/app/lenders/views"
+	"happy_bank_simulator/app/loans"
 	loanViews "happy_bank_simulator/app/loans/views"
 	overview "happy_bank_simulator/app/overview/views"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
@@ -20,6 +25,11 @@ func InitApp() {
 	masterWindow.Resize(fyne.NewSize(1200, 700))
 	appHelpers.SetMasterWindow(&masterWindow)
 
+	var borrowersController = borrowers.Controller{}
+	var insurersController = insurers.Controller{}
+	var lendersController = lenders.Controller{}
+	var loansController = loans.Controller{}
+
 	overviewView := overview.RenderOverview()
 	loansView := loanViews.RenderIndex()
 	borrowersView := borrowerViews.RenderIndex()
@@ -28,10 +38,10 @@ func InitApp() {
 
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Aperçu", overviewView),
-		container.NewTabItem("Crédits", loansView),
-		container.NewTabItem("Débiteurs", borrowersView),
-		container.NewTabItem("Créanciers", lendersView),
-		container.NewTabItem("Assureurs", insurersView),
+		container.NewTabItem(strings.Title(loansController.GetModelName(true)), loansView),
+		container.NewTabItem(strings.Title(borrowersController.GetModelName(true)), borrowersView),
+		container.NewTabItem(strings.Title(lendersController.GetModelName(true)), lendersView),
+		container.NewTabItem(strings.Title(insurersController.GetModelName(true)), insurersView),
 	)
 
 	tabs.SetTabLocation(container.TabLocationLeading)

@@ -14,6 +14,10 @@ type Insurer struct {
 	Balance float64
 }
 
+func (instance *Insurer) ModelName() string {
+	return "assureur"
+}
+
 func (instance *Insurer) Save() *Insurer {
 	result := database.GetDB().Save(instance)
 

@@ -3,11 +3,14 @@ package views
 import (
 	"fmt"
 	"happy_bank_simulator/app/borrowers"
-	appHelpers "happy_bank_simulator/app/helpers"
+	"happy_bank_simulator/app/helpers"
+	"happy_bank_simulator/app/loans"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -33,8 +36,9 @@ func RenderIndex() *fyne.Container {
 	table.SetColumnWidth(1, 250)
 	table.SetColumnWidth(2, 100)
 
-	newButton := widget.NewButton("Nouveau débiteur", func() {
-		fmt.Println("New button")
+	newButtonString := strings.Title(borrowersController.GetModelName(false))
+	newButton := widget.NewButtonWithIcon(newButtonString, theme.ContentAddIcon(), func() {
+		fmt.Println("newButton", newButtonString)
 		RenderNew()
 	})
 
@@ -42,7 +46,8 @@ func RenderIndex() *fyne.Container {
 }
 
 func RenderNew() {
-	loanList := borrowersController.GetLoanStringList()
+	loansController := loans.Controller{}
+	loanList := loansController.GetLoanStringList()
 
 	nameEntry := widget.NewEntry()
 	balanceEntry := widget.NewEntry()
@@ -56,8 +61,8 @@ func RenderNew() {
 		{Text: "Prêt associé", Widget: &selectMenu},
 	}
 
-	dialog.ShowForm("Nouveau débiteur", "Créer", "Annuler", formItems, func(bool) {
+	dialog.ShowForm(strings.Title(borrowersController.GetModelName(false)), "Créer", "Annuler", formItems, func(bool) {
 		fmt.Println("Nom :", nameEntry.Text)
 		fmt.Println("Balance :", balanceEntry.Text)
-	}, appHelpers.GetMasterWindow())
+	}, helpers.GetMasterWindow())
 }

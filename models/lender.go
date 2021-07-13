@@ -14,6 +14,10 @@ type Lender struct {
 	Balance float64
 }
 
+func (instance *Lender) ModelName() string {
+	return "prêteur"
+}
+
 func (instance *Lender) Save() *Lender {
 	result := database.GetDB().Save(instance)
 

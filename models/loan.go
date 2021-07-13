@@ -27,6 +27,10 @@ type Loan struct {
 	MonthlyInsurance float64
 }
 
+func (instance *Loan) ModelName() string {
+	return "emprunt"
+}
+
 func (instance *Loan) Save() *Loan {
 	result := database.GetDB().Save(instance)
 

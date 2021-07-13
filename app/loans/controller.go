@@ -11,6 +11,14 @@ import (
 
 type Controller struct{}
 
+func (c *Controller) GetModelName(pluralize bool) string {
+	loanModel := models.Loan{}
+	if pluralize {
+		return fmt.Sprintf("%ss", loanModel.ModelName())
+	}
+	return loanModel.ModelName()
+}
+
 func (c *Controller) GetLoanTableData() [][]string {
 	var loans []models.Loan
 	database.GetDB().Preload(clause.Associations).Find(&loans)
@@ -34,18 +42,16 @@ func (c *Controller) GetLoanTableData() [][]string {
 	return loanTableData
 }
 
-// func (c *Controller) Create(name string, balance float64) *models.Loan {
-// 	loan := &models.Loan{
-// 		Name:    name,
-// 		Loans:   []models.Loan{},
-// 		Balance: balance,
-// 	}
+func (c *Controller) GetLoanStringList() []string {
+	var loanStringList []string
 
-// 	result := loan.Create()
+	var loans []models.Loan
+	database.GetDB().Preload(clause.Associations).Find(&loans)
 
-// 	if loan.ID == 0 || result.RowsAffected == 0 {
-// 		log.Fatal(result.Error)
-// 	}
+	for _, loan := range loans {
+		string := fmt.Sprintf("%s - %8.0f € ", strconv.Itoa(int(loan.ID)), loan.Amount)
+		loanStringList = append(loanStringList, string)
+	}
 
-// 	return loan
-// }
+	return loanStringList
+}

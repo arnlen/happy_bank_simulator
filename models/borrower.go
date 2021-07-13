@@ -14,6 +14,10 @@ type Borrower struct {
 	Balance float64
 }
 
+func (instance *Borrower) ModelName() string {
+	return "emprunteur"
+}
+
 func (instance *Borrower) Save() *Borrower {
 	result := database.GetDB().Save(instance)
 

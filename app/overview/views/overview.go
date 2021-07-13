@@ -26,10 +26,22 @@ func RenderOverview() *fyne.Container {
 	insurersCounterBindingStrings := binding.IntToString(insurersCounterBinding)
 
 	vbox := container.NewVBox(
-		widget.NewLabelWithData(loansCounterBindingStrings),
-		widget.NewLabelWithData(borrowersCounterBindingStrings),
-		widget.NewLabelWithData(lendersCounterBindingStrings),
-		widget.NewLabelWithData(insurersCounterBindingStrings),
+		container.NewHBox(
+			widget.NewLabel("Nombres de prêts :"),
+			widget.NewLabelWithData(loansCounterBindingStrings),
+		),
+		container.NewHBox(
+			widget.NewLabel("Nombres d'emprunteurs :"),
+			widget.NewLabelWithData(borrowersCounterBindingStrings),
+		),
+		container.NewHBox(
+			widget.NewLabel("Nombres de prêteurs :"),
+			widget.NewLabelWithData(lendersCounterBindingStrings),
+		),
+		container.NewHBox(
+			widget.NewLabel("Nombres d'assureurs :"),
+			widget.NewLabelWithData(insurersCounterBindingStrings),
+		),
 	)
 
 	populateDatabaseButton := widget.NewButton("Remplir la base", func() {

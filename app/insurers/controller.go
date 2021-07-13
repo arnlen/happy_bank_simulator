@@ -11,6 +11,14 @@ import (
 
 type Controller struct{}
 
+func (c *Controller) GetModelName(pluralize bool) string {
+	insurerModel := models.Insurer{}
+	if pluralize {
+		return fmt.Sprintf("%ss", insurerModel.ModelName())
+	}
+	return insurerModel.ModelName()
+}
+
 func (c *Controller) GetInsurerTableData() [][]string {
 	var insurers []models.Insurer
 	database.GetDB().Preload(clause.Associations).Find(&insurers)
