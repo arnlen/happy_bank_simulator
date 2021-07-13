@@ -10,7 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func Index(borrowers []models.Borrower) *fyne.Container {
+func RenderIndex(borrowers []models.Borrower) *fyne.Container {
 	var borrowersTableData = [][]string{
 		{"ID", "Name", "Balance"}}
 
@@ -46,3 +46,11 @@ func Index(borrowers []models.Borrower) *fyne.Container {
 
 	return container.NewBorder(newButton, nil, nil, nil, table)
 }
+
+// func new() {
+// 	dialog.NewCustom("Nouveau débiteur", "Annuler", renderNewForm(), fyne.CurrentApp().NewWindow())
+// }
+
+// func renderNewForm() fyne.CanvasObject {
+
+// }

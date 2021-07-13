@@ -1,8 +1,8 @@
 package models
 
 import (
-	"happy_bank_simulator/database"
 	"happy_bank_simulator/services"
+	"happy_bank_simulator/services/database"
 	"log"
 
 	"gorm.io/gorm"

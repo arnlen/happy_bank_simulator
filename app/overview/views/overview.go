@@ -1,8 +1,8 @@
-package overviews
+package views
 
 import (
 	"fmt"
-	"happy_bank_simulator/controllers"
+	"happy_bank_simulator/app/overview"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -17,7 +17,7 @@ var lendersCounterBinding = binding.NewInt()
 var insurersCounterBinding = binding.NewInt()
 
 // Initialize controller
-var overviewController = controllers.Overview{}
+var overviewController = overview.Controller{}
 
 func Render() *fyne.Container {
 	loansCounterBindingStrings := binding.IntToString(loansCounterBinding)

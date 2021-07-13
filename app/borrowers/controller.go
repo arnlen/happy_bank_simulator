@@ -1,4 +1,4 @@
-package controllers
+package borrowers
 
 import (
 	"happy_bank_simulator/models"
@@ -6,11 +6,11 @@ import (
 )
 
 // Declare conformity with BaseController interface
-var _ BaseController = (*Borrowers)(nil)
+// var _ BaseController = (*Borrowers)(nil)
 
-type Borrowers struct{}
+type Controller struct{}
 
-func (c *Borrowers) Create(name string, balance float64) *models.Borrower {
+func (c *Controller) Create(name string, balance float64) *models.Borrower {
 	borrower := &models.Borrower{
 		Name:    name,
 		Loans:   []models.Loan{},
