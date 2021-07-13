@@ -13,7 +13,7 @@ var (
 )
 
 func InitDB() *gorm.DB {
-	db, err = gorm.Open(sqlite.Open("tmp/happy_dev.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open("database/happy_dev.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,6 +2,7 @@ package app
 
 import (
 	borrowerViews "happy_bank_simulator/app/borrowers/views"
+	appHelpers "happy_bank_simulator/app/helpers"
 	insurerViews "happy_bank_simulator/app/insurers/views"
 	lenderViews "happy_bank_simulator/app/lenders/views"
 	loanViews "happy_bank_simulator/app/loans/views"
@@ -12,18 +13,14 @@ import (
 	"fyne.io/fyne/v2/container"
 )
 
-var (
-	app          fyne.App
-	masterWindow fyne.Window
-)
-
 func InitApp() {
-	app = fyneApp.New()
+	app := fyneApp.New()
 
-	masterWindow = app.NewWindow("Happy Bank Simulator")
+	masterWindow := app.NewWindow("Happy Bank Simulator")
 	masterWindow.Resize(fyne.NewSize(1200, 700))
+	appHelpers.SetMasterWindow(&masterWindow)
 
-	overviewView := overview.RenderIndex()
+	overviewView := overview.RenderOverview()
 	loansView := loanViews.RenderIndex()
 	borrowersView := borrowerViews.RenderIndex()
 	lendersView := lenderViews.RenderIndex()
@@ -42,12 +39,4 @@ func InitApp() {
 	borderContainer := container.NewBorder(nil, nil, nil, nil, tabs)
 	masterWindow.SetContent(borderContainer)
 	masterWindow.ShowAndRun()
-}
-
-func GetApp() fyne.App {
-	return app
-}
-
-func GetMasterWindow() fyne.Window {
-	return masterWindow
 }

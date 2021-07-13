@@ -19,7 +19,7 @@ var insurersCounterBinding = binding.NewInt()
 // Initialize controller
 var overviewController = overview.Controller{}
 
-func RenderIndex() *fyne.Container {
+func RenderOverview() *fyne.Container {
 	loansCounterBindingStrings := binding.IntToString(loansCounterBinding)
 	borrowersCounterBindingStrings := binding.IntToString(borrowersCounterBinding)
 	lendersCounterBindingStrings := binding.IntToString(lendersCounterBinding)

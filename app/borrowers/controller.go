@@ -35,6 +35,20 @@ func (c *Controller) GetBorrowerTableData() [][]string {
 	return borrowerTableData
 }
 
+func (c *Controller) GetLoanStringList() []string {
+	var loanStringList []string
+
+	var loans []models.Loan
+	database.GetDB().Preload(clause.Associations).Find(&loans)
+
+	for _, loan := range loans {
+		string := fmt.Sprintf("%s - %s € ", loan.ID, loan.Amount)
+		loanStringList = append(loanStringList, string)
+	}
+
+	return loanStringList
+}
+
 func (c *Controller) Create(name string, balance float64) *models.Borrower {
 	borrower := &models.Borrower{
 		Name:    name,
