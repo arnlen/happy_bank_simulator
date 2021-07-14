@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Loan struct {
@@ -29,6 +30,12 @@ type Loan struct {
 
 func (instance *Loan) ModelName() string {
 	return "emprunt"
+}
+
+func (instance *Loan) List() []Loan {
+	var loans []Loan
+	database.GetDB().Preload(clause.Associations).Find(&loans)
+	return loans
 }
 
 func (instance *Loan) Save() *Loan {

@@ -3,6 +3,7 @@ package app
 import (
 	"happy_bank_simulator/app/borrowers"
 	borrowerViews "happy_bank_simulator/app/borrowers/views"
+	"happy_bank_simulator/app/configs"
 	appHelpers "happy_bank_simulator/app/helpers"
 	"happy_bank_simulator/app/insurers"
 	insurerViews "happy_bank_simulator/app/insurers/views"
@@ -30,6 +31,7 @@ func InitApp() {
 	var lendersController = lenders.Controller{}
 	var loansController = loans.Controller{}
 
+	configsView := configs.RenderConfigs()
 	overviewView := overview.RenderOverview()
 	loansView := loanViews.RenderIndex()
 	borrowersView := borrowerViews.RenderIndex()
@@ -37,6 +39,7 @@ func InitApp() {
 	insurersView := insurerViews.RenderIndex()
 
 	tabs := container.NewAppTabs(
+		container.NewTabItem("Paramètres", configsView),
 		container.NewTabItem("Aperçu", overviewView),
 		container.NewTabItem(strings.Title(loansController.GetModelName(true)), loansView),
 		container.NewTabItem(strings.Title(borrowersController.GetModelName(true)), borrowersView),

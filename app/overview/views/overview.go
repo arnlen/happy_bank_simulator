@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"happy_bank_simulator/app/charts"
 	"happy_bank_simulator/app/overview"
 
 	"fyne.io/fyne/v2"
@@ -56,9 +57,15 @@ func RenderOverview() *fyne.Container {
 		updateCounters(overviewController.GetCounters())
 	})
 
+	generateChartsButton := widget.NewButton("Générer les graphes", func() {
+		fmt.Println("Generate chartes button tapped")
+		charts.RenderChart()
+	})
+
 	hbox := container.NewHBox(
 		populateDatabaseButton,
 		wipeDatabaseButton,
+		generateChartsButton,
 	)
 
 	updateCounters(overviewController.GetCounters())
