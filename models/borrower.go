@@ -9,9 +9,10 @@ import (
 
 type Borrower struct {
 	gorm.Model
-	Name    string
-	Loans   []Loan
-	Balance float64
+	Name       string
+	Loans      []Loan
+	Balance    float64
+	WillFailOn string
 }
 
 func (instance *Borrower) ModelName() string {
