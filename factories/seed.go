@@ -24,14 +24,14 @@ func CreateSeedState() {
 
 	for i := 0; i < 10; i++ {
 		db.Create(&models.Loan{
-			Borrower:         models.Borrower{Name: faker.Name().Name(), Balance: float64(faker.Number().NumberInt(5))},
-			Lender:           models.Lender{Name: faker.Name().Name(), Balance: float64(faker.Number().NumberInt(5))},
-			Insurer:          models.Insurer{Name: faker.Name().Name(), Balance: float64(faker.Number().NumberInt(5))},
+			Borrower:         models.Borrower{Name: faker.Name().Name(), Balance: faker.Number().NumberInt(5)},
+			Lender:           models.Lender{Name: faker.Name().Name(), Balance: faker.Number().NumberInt(5)},
+			Insurer:          models.Insurer{Name: faker.Name().Name(), Balance: faker.Number().NumberInt(5)},
 			StartDate:        startDate,
 			EndDate:          endDate,
-			Duration:         int32(duration),
-			Amount:           float64(amount),
-			InitialDeposit:   float64(initialDeposit),
+			Duration:         duration,
+			Amount:           amount,
+			InitialDeposit:   initialDeposit,
 			CreditRate:       creditRate,
 			InsuranceRate:    insuranceRate,
 			MonthlyCredit:    monthlyCredit,

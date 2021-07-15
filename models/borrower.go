@@ -1,18 +1,35 @@
 package models
 
 import (
-	"happy_bank_simulator/database"
 	"log"
 
+	"happy_bank_simulator/app/configs"
+	"happy_bank_simulator/database"
+
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
+	"syreclabs.com/go/faker"
 )
 
 type Borrower struct {
 	gorm.Model
 	Name       string
 	Loans      []Loan
-	Balance    float64
+	Balance    int
 	WillFailOn string
+}
+
+func FindBorrower(id int) *Borrower {
+	var borrower Borrower
+	database.GetDB().Preload(clause.Associations).First(&borrower, id)
+	return &borrower
+}
+
+func ListBorrowers() []Borrower {
+	var borrowers []Borrower
+	database.GetDB().Preload(clause.Associations).Find(&borrowers)
+	return borrowers
 }
 
 func (instance *Borrower) ModelName() string {
@@ -29,6 +46,29 @@ func (instance *Borrower) Save() *Borrower {
 	return instance
 }
 
-func (instance *Borrower) Create() *gorm.DB {
-	return database.GetDB().Create(instance)
+func NewBorrower(name string, balance int) *Borrower {
+	return &Borrower{
+		Name:    name,
+		Loans:   []Loan{},
+		Balance: balance,
+	}
+}
+
+func NewDefaultBorrower() *Borrower {
+	return &Borrower{
+		Name:    faker.Name().Name(),
+		Loans:   []Loan{},
+		Balance: configs.Borrower.InitialBalance,
+	}
+}
+
+func CreateBorrower(name string, balance int) *Borrower {
+	borrower := NewBorrower(name, balance)
+	result := database.GetDB().Create(&borrower)
+
+	if borrower.ID == 0 || result.RowsAffected == 0 {
+		log.Fatal(result.Error)
+	}
+
+	return borrower
 }

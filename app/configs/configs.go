@@ -20,9 +20,8 @@ type loan struct {
 }
 
 type borrower struct {
-	InitialBalance   int
-	MaxAmountPerLoan int
-	FailureRate      float64
+	InitialBalance int
+	FailureRate    float64
 }
 
 type lender struct {
@@ -48,14 +47,13 @@ var Loan = loan{
 	DefaultAmount:       5000,
 	DefaultDuration:     12,
 	SecurityDepositRate: 0.1,
-	InitialQuantity:     100,
+	InitialQuantity:     5,
 	InsuredQuantityRate: 0.8,
 }
 
 var Borrower = borrower{
-	InitialBalance:   5000,
-	MaxAmountPerLoan: 1000,
-	FailureRate:      0.2,
+	InitialBalance: 5000,
+	FailureRate:    0.2,
 }
 
 var Lender = lender{

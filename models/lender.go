@@ -1,21 +1,30 @@
 package models
 
 import (
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"syreclabs.com/go/faker"
 )
 
 type Lender struct {
 	gorm.Model
 	Name    string
 	Loans   []Loan
-	Balance float64
+	Balance int
 }
 
 func (instance *Lender) ModelName() string {
 	return "prêteur"
+}
+
+func ListLenders() []Lender {
+	var lenders []Lender
+	database.GetDB().Preload(clause.Associations).Find(&lenders)
+	return lenders
 }
 
 func (instance *Lender) Save() *Lender {
@@ -28,7 +37,7 @@ func (instance *Lender) Save() *Lender {
 	return instance
 }
 
-func NewLender(name string, balance float64) *Lender {
+func NewLender(name string, balance int) *Lender {
 	return &Lender{
 		Name:    name,
 		Loans:   []Loan{},
@@ -36,7 +45,15 @@ func NewLender(name string, balance float64) *Lender {
 	}
 }
 
-func CreateLender(name string, balance float64) *Lender {
+func NewDefaultLender() *Lender {
+	return &Lender{
+		Name:    faker.Name().Name(),
+		Loans:   []Loan{},
+		Balance: configs.Lender.InitialBalance,
+	}
+}
+
+func CreateLender(name string, balance int) *Lender {
 	lender := NewLender(name, balance)
 	result := database.GetDB().Create(&lender)
 

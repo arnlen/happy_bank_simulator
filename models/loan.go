@@ -1,10 +1,11 @@
 package models
 
 import (
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
-	"happy_bank_simulator/services"
 	"log"
 
+	"github.com/drum445/gofin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -19,9 +20,9 @@ type Loan struct {
 	InsurerID        uint
 	StartDate        string
 	EndDate          string
-	Duration         int32
-	Amount           float64
-	InitialDeposit   float64
+	Duration         int
+	Amount           int
+	InitialDeposit   int
 	CreditRate       float64
 	InsuranceRate    float64
 	MonthlyCredit    float64
@@ -32,7 +33,7 @@ func (instance *Loan) ModelName() string {
 	return "emprunt"
 }
 
-func (instance *Loan) List() []Loan {
+func ListLoans() []Loan {
 	var loans []Loan
 	database.GetDB().Preload(clause.Associations).Find(&loans)
 	return loans
@@ -48,22 +49,20 @@ func (instance *Loan) Save() *Loan {
 	return instance
 }
 
-func NewLoan(startDate string, endDate string, duration int32, amount float64, borrower *Borrower, lender *Lender, insurer *Insurer) *Loan {
-	initialDeposit := amount / 10
-	creditRate := 0.3
-	insuranceRate := 0.3
-	monthlyCredit := services.CalculateMonthlyCreditPayment(creditRate, float64(duration), float64(amount))
-	monthlyInsurance := services.CalculateMonthlyInsurancePayment(insuranceRate, float64(duration), float64(amount))
+func NewDefaultLoan() *Loan {
+	amount := configs.Loan.DefaultAmount
+	duration := configs.Loan.DefaultDuration
+	creditRate := configs.General.CreditInterestRate
+	insuranceRate := configs.General.InsuranceInterestRate
+
+	initialDeposit := configs.Loan.SecurityDepositRate * float64(amount)
+	monthlyCredit := CalculateMonthlyCreditPayment(creditRate, duration, amount)
+	monthlyInsurance := CalculateMonthlyInsurancePayment(insuranceRate, amount)
 
 	return &Loan{
-		BorrowerID:       borrower.ID,
-		LenderID:         lender.ID,
-		InsurerID:        insurer.ID,
-		StartDate:        startDate,
-		EndDate:          endDate,
-		Duration:         duration,
-		Amount:           amount,
-		InitialDeposit:   initialDeposit,
+		Duration:         configs.Loan.DefaultDuration,
+		Amount:           configs.Loan.DefaultAmount,
+		InitialDeposit:   int(initialDeposit),
 		CreditRate:       creditRate,
 		InsuranceRate:    insuranceRate,
 		MonthlyCredit:    monthlyCredit,
@@ -71,13 +70,10 @@ func NewLoan(startDate string, endDate string, duration int32, amount float64, b
 	}
 }
 
-func CreateLoan(startDate string, endDate string, duration int32, amount float64, borrower *Borrower, lender *Lender, insurer *Insurer) *Loan {
-	loan := NewLoan(startDate, endDate, duration, amount, borrower, lender, insurer)
-	result := database.GetDB().Create(&loan)
+func CalculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount int) float64 {
+	return gofin.PMT(interestCreditRate, float64(duration), float64(-amount), 0, 0)
+}
 
-	if loan.ID == 0 || result.RowsAffected == 0 {
-		log.Fatal(result.Error)
-	}
-
-	return loan
+func CalculateMonthlyInsurancePayment(interestInsuranceRate float64, amount int) float64 {
+	return (float64(interestInsuranceRate) * float64(amount) / 100) / 12
 }

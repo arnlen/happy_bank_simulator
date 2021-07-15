@@ -1,21 +1,30 @@
 package models
 
 import (
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"syreclabs.com/go/faker"
 )
 
 type Insurer struct {
 	gorm.Model
 	Name    string
 	Loans   []Loan
-	Balance float64
+	Balance int
 }
 
 func (instance *Insurer) ModelName() string {
 	return "assureur"
+}
+
+func ListInsurers() []Insurer {
+	var insurers []Insurer
+	database.GetDB().Preload(clause.Associations).Find(&insurers)
+	return insurers
 }
 
 func (instance *Insurer) Save() *Insurer {
@@ -28,7 +37,7 @@ func (instance *Insurer) Save() *Insurer {
 	return instance
 }
 
-func NewInsurer(name string, balance float64) *Insurer {
+func NewInsurer(name string, balance int) *Insurer {
 	return &Insurer{
 		Name:    name,
 		Loans:   []Loan{},
@@ -36,6 +45,21 @@ func NewInsurer(name string, balance float64) *Insurer {
 	}
 }
 
-func (instance *Insurer) Create() *gorm.DB {
-	return database.GetDB().Create(instance)
+func NewDefaultInsurer() *Insurer {
+	return &Insurer{
+		Name:    faker.Name().Name(),
+		Loans:   []Loan{},
+		Balance: configs.Insurer.InitialBalance,
+	}
+}
+
+func CreateInsurer(name string, balance int) *Insurer {
+	insurer := NewInsurer(name, balance)
+	result := database.GetDB().Create(&insurer)
+
+	if insurer.ID == 0 || result.RowsAffected == 0 {
+		log.Fatal(result.Error)
+	}
+
+	return insurer
 }

@@ -11,7 +11,7 @@ type Transaction struct {
 	gorm.Model
 	From   interface{}
 	To     interface{}
-	Amount float64
+	Amount int
 }
 
 func (instance *Transaction) ModelName() string {
@@ -28,7 +28,7 @@ func (instance *Transaction) Save() *Transaction {
 	return instance
 }
 
-func NewTransaction(from interface{}, to interface{}, amount float64) *Transaction {
+func NewTransaction(from interface{}, to interface{}, amount int) *Transaction {
 	return &Transaction{
 		From:   from,
 		To:     to,

@@ -132,17 +132,6 @@ func RenderConfigs() *fyne.Container {
 	labels = append(labels, borrowerInitialBalanceLabel)
 	entries = append(entries, borrowerInitialBalanceEntry)
 
-	borrowerMaxAmountPerLoanLabel := widget.NewLabel("Montant max par prêt par emprunteur")
-	borrowerMaxAmountPerLoanEntry := widget.NewEntry()
-	borrowerMaxAmountPerLoanEntry.SetText(strconv.Itoa(Borrower.MaxAmountPerLoan))
-	borrowerMaxAmountPerLoanEntry.OnChanged = func(value string) {
-		borrowerMaxAmountPerLoan, _ := strconv.Atoi(value)
-		Borrower.MaxAmountPerLoan = borrowerMaxAmountPerLoan
-		fmt.Println("Borrower.MaxAmountPerLoan updated to", value)
-	}
-	labels = append(labels, borrowerMaxAmountPerLoanLabel)
-	entries = append(entries, borrowerMaxAmountPerLoanEntry)
-
 	borrowerFailureRateLabel := widget.NewLabel("Taux de défaut des emprunteurs")
 	borrowerFailureRateEntry := widget.NewEntry()
 	borrowerFailureRateEntry.SetText(fmt.Sprintf("%1.2f", Borrower.FailureRate))
