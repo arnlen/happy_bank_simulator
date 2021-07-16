@@ -46,18 +46,19 @@ func createLoans() {
 		// Assign borrower to loan
 		loan.Borrower = *borrower
 		loan.Save()
-		borrower = models.FindBorrower(int(borrower.ID))
+		borrower.Refresh()
 		fmt.Printf("Borrower assigned: Loan #%s's borrower = #%s\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(int(loan.BorrowerID)))
 		fmt.Printf("Borrower #%s has now %s loans\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(len(borrower.Loans))))
-		fmt.Println(borrower.Loans)
 
-		// How many lenders for this loan?
-		lendersQuantityRequired := calculatelendersQuantityRequired(defaultLoanAmount)
+		// How many lenders required for this loan?
+		lendersQuantityRequired := calculateLendersQuantityRequired(defaultLoanAmount)
 		fmt.Println("lendersQuantityRequired", lendersQuantityRequired)
 
 		// Find or create lenders
+		lendersWithoutLoans := models.ListLendersWithoutLoan()
 		lenders := models.ListLenders()
 		currentLenderQuantity := len(lenders)
+		fmt.Println("lendersWithoutLoans", len(lendersWithoutLoans))
 		fmt.Println("currentLenderQuantity", currentLenderQuantity)
 
 		if currentLenderQuantity < lendersQuantityRequired {
@@ -105,7 +106,7 @@ func prepareLoanCreation() {
 	createInsurers(quantityOfInsurersToCreate)
 }
 
-func calculatelendersQuantityRequired(amount int) int {
+func calculateLendersQuantityRequired(amount int) int {
 	maxAmountPerBorrower := configs.Lender.MaxAmountPerLoan
 	return int(math.Ceil(float64(amount) / float64(maxAmountPerBorrower)))
 }

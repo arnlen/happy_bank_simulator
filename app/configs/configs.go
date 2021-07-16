@@ -47,7 +47,7 @@ var Loan = loan{
 	DefaultAmount:       5000,
 	DefaultDuration:     12,
 	SecurityDepositRate: 0.1,
-	InitialQuantity:     5,
+	InitialQuantity:     1,
 	InsuredQuantityRate: 0.8,
 }
 

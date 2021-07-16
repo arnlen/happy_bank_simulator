@@ -14,8 +14,7 @@ type Loan struct {
 	gorm.Model
 	Borrower         Borrower
 	BorrowerID       uint
-	Lender           Lender
-	LenderID         uint
+	Lenders          []*Lender `gorm:"many2many:loan_lenders;"`
 	Insurer          Insurer
 	InsurerID        uint
 	StartDate        string

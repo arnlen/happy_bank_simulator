@@ -20,6 +20,25 @@ type Borrower struct {
 	WillFailOn string
 }
 
+func (instance *Borrower) ModelName() string {
+	return "emprunteur"
+}
+
+func (instance *Borrower) Refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
+}
+
+func (instance *Borrower) Save() {
+	db := database.GetDB()
+	result := db.Save(instance)
+
+	if instance.ID == 0 || result.RowsAffected == 0 {
+		log.Fatal(result.Error)
+	}
+
+	instance.Refresh()
+}
+
 func FindBorrower(id int) *Borrower {
 	var borrower Borrower
 	database.GetDB().Preload(clause.Associations).First(&borrower, id)
@@ -30,20 +49,6 @@ func ListBorrowers() []Borrower {
 	var borrowers []Borrower
 	database.GetDB().Preload(clause.Associations).Find(&borrowers)
 	return borrowers
-}
-
-func (instance *Borrower) ModelName() string {
-	return "emprunteur"
-}
-
-func (instance *Borrower) Save() *Borrower {
-	result := database.GetDB().Save(instance)
-
-	if instance.ID == 0 || result.RowsAffected == 0 {
-		log.Fatal(result.Error)
-	}
-
-	return instance
 }
 
 func NewBorrower(name string, balance int) *Borrower {

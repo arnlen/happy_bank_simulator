@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
@@ -13,7 +14,7 @@ import (
 type Lender struct {
 	gorm.Model
 	Name    string
-	Loans   []Loan
+	Loans   []*Loan `gorm:"many2many:loan_lenders;"`
 	Balance int
 }
 
@@ -25,6 +26,12 @@ func ListLenders() []Lender {
 	var lenders []Lender
 	database.GetDB().Preload(clause.Associations).Find(&lenders)
 	return lenders
+}
+
+func ListLendersWithoutLoan() []Lender {
+	// database.GetDB().Model(&Lender{}).Select("lenders.id").Joins("left join loans on loans.lender_id = lenders.id").
+	// GROS PROUT
+	// return lenders
 }
 
 func (instance *Lender) Save() *Lender {
@@ -40,7 +47,7 @@ func (instance *Lender) Save() *Lender {
 func NewLender(name string, balance int) *Lender {
 	return &Lender{
 		Name:    name,
-		Loans:   []Loan{},
+		Loans:   []*Loan{},
 		Balance: balance,
 	}
 }
@@ -48,7 +55,7 @@ func NewLender(name string, balance int) *Lender {
 func NewDefaultLender() *Lender {
 	return &Lender{
 		Name:    faker.Name().Name(),
-		Loans:   []Loan{},
+		Loans:   []*Loan{},
 		Balance: configs.Lender.InitialBalance,
 	}
 }
