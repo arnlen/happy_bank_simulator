@@ -3,7 +3,9 @@ package simulation
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strconv"
+	"time"
 
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database/helpers"
@@ -28,22 +30,19 @@ func Prepare() {
 // - Place the initial security deposit
 // - Determine if the borrower should fail
 //
-// For lenders and insurers
-// - Take their balance into account
 
 func createLoans() {
 	quantityOfLoansToCreate = configs.Loan.InitialQuantity
 	fmt.Println("Quantity of Loans to create:", quantityOfLoansToCreate)
 
 	for i := 0; i < quantityOfLoansToCreate; i++ {
-		currentLoan := createEmptyLoan()
-		borrower := createDefaultBorrower()
-		assignBorrowerToLoan(borrower, currentLoan)
+		loan := createEmptyLoan()
 
-		setupLendersForLoan(currentLoan)
-		setupInsurersForLoan(currentLoan)
+		setupBorrowerForLoan(loan)
+		setupLendersForLoan(loan)
+		setupInsurersForLoan(loan)
 
-		printSummaryForLoan(*currentLoan)
+		printSummaryForLoan(*loan)
 	}
 }
 
@@ -67,6 +66,11 @@ func assignBorrowerToLoan(borrower *models.Borrower, loan *models.Loan) {
 	borrower.Refresh()
 	fmt.Printf("Borrower assigned: Loan #%s's borrower = #%s\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(int(loan.BorrowerID)))
 	fmt.Printf("Borrower #%s has now %s loans\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(len(borrower.Loans))))
+}
+
+func setupBorrowerForLoan(loan *models.Loan) {
+	borrower := createDefaultBorrower()
+	assignBorrowerToLoan(borrower, loan)
 }
 
 func setupLendersForLoan(loan *models.Loan) {
@@ -271,5 +275,20 @@ func printSummaryForLoan(loan models.Loan) {
 	fmt.Printf("- %s insurers:\n", strconv.Itoa(len(loan.Insurers)))
 	for _, insurer := range loan.Insurers {
 		fmt.Printf("--- %s (#%s)\n", insurer.Name, strconv.Itoa(int(insurer.ID)))
+	}
+}
+
+func PositiveForProbability(probability float64) bool {
+	probability = probability * 100
+
+	rand.Seed(time.Now().UnixNano())
+	randomNumber := rand.Intn(100)
+
+	if randomNumber < int(probability) {
+		fmt.Println("True")
+		return true
+	} else {
+		fmt.Println("False")
+		return false
 	}
 }
