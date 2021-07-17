@@ -5,33 +5,34 @@ import ()
 // Types definitions
 
 type general struct {
-	StartDate             string
-	Duration              int
-	CreditInterestRate    float64
-	InsuranceInterestRate float64
+	StartDate             string  // Simulation start date
+	Duration              int     // Simulation duration (in months)
+	CreditInterestRate    float64 // Interest rate of the credit part of a loan
+	InsuranceInterestRate float64 // Interest rate of the insurance part of a loan
 }
 
 type loan struct {
-	DefaultAmount       int
-	DefaultDuration     int
-	SecurityDepositRate float64
-	InitialQuantity     int
-	InsuredQuantityRate float64
+	InitialQuantity      int     // How many loans should exist at the beginning at the simulation
+	DefaultAmount        int     // Default amount for a new loan
+	DefaultDuration      int     // Default duration for a new loan
+	SecurityDepositRate  float64 // For a given loan amout, how much % a borrower must stake
+	InsuredQuantityRatio float64 // How many loans are insured, in % of the total amount of loans
 }
 
 type borrower struct {
-	InitialBalance int
-	FailureRate    float64
+	InitialBalance       int     // Initial balance
+	FailureRate          float64 // How many borrower should fail, in % of the total amout of borrowers
+	BalanceLeverageRatio float64 // Ratio between the balance of the borrower and the amount he can borrow
 }
 
 type lender struct {
-	InitialBalance   int
-	MaxAmountPerLoan int
+	InitialBalance   int // Initial balance
+	MaxAmountPerLoan int // Maximum amout of money a lender can lend per loan
 }
 
 type insurer struct {
-	InitialBalance   int
-	MaxAmountPerLoan int
+	InitialBalance   int // Initial balance
+	MaxAmountPerLoan int // Maximum amout of money an insurer can insure per loan
 }
 
 // Config intialization
@@ -44,16 +45,17 @@ var General = general{
 }
 
 var Loan = loan{
-	DefaultAmount:       5000,
-	DefaultDuration:     12,
-	SecurityDepositRate: 0.1,
-	InitialQuantity:     1,
-	InsuredQuantityRate: 0.8,
+	InitialQuantity:      1,
+	DefaultAmount:        5000,
+	DefaultDuration:      12,
+	SecurityDepositRate:  0.1,
+	InsuredQuantityRatio: 0.8,
 }
 
 var Borrower = borrower{
-	InitialBalance: 5000,
-	FailureRate:    0.2,
+	InitialBalance:       5000,
+	FailureRate:          0.2,
+	BalanceLeverageRatio: 1.0,
 }
 
 var Lender = lender{

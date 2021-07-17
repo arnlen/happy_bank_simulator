@@ -13,7 +13,7 @@ import (
 type Insurer struct {
 	gorm.Model
 	Name    string
-	Loans   []Loan
+	Loans   []*Loan `gorm:"many2many:loan_insurers;"`
 	Balance int
 }
 
@@ -40,7 +40,7 @@ func (instance *Insurer) Save() *Insurer {
 func NewInsurer(name string, balance int) *Insurer {
 	return &Insurer{
 		Name:    name,
-		Loans:   []Loan{},
+		Loans:   []*Loan{},
 		Balance: balance,
 	}
 }
@@ -48,7 +48,7 @@ func NewInsurer(name string, balance int) *Insurer {
 func NewDefaultInsurer() *Insurer {
 	return &Insurer{
 		Name:    faker.Name().Name(),
-		Loans:   []Loan{},
+		Loans:   []*Loan{},
 		Balance: configs.Insurer.InitialBalance,
 	}
 }

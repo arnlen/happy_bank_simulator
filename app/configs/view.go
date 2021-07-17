@@ -108,16 +108,16 @@ func RenderConfigs() *fyne.Container {
 	labels = append(labels, initialLoanQuantityLabel)
 	entries = append(entries, initialLoanQuantityEntry)
 
-	insuredQuantityRateLabel := widget.NewLabel("Quantité d'emprunts assurés")
-	insuredQuantityRateEntry := widget.NewEntry()
-	insuredQuantityRateEntry.SetText(fmt.Sprintf("%1.2f", Loan.InsuredQuantityRate))
-	insuredQuantityRateEntry.OnChanged = func(value string) {
-		insuredQuantityRate, _ := strconv.ParseFloat(value, 64)
-		Loan.InsuredQuantityRate = insuredQuantityRate
-		fmt.Println("Loan.InsuredQuantityRate updated to", value)
+	insuredQuantityRatioLabel := widget.NewLabel("Quantité d'emprunts assurés")
+	insuredQuantityRatioEntry := widget.NewEntry()
+	insuredQuantityRatioEntry.SetText(fmt.Sprintf("%1.2f", Loan.InsuredQuantityRatio))
+	insuredQuantityRatioEntry.OnChanged = func(value string) {
+		insuredQuantityRatio, _ := strconv.ParseFloat(value, 64)
+		Loan.InsuredQuantityRatio = insuredQuantityRatio
+		fmt.Println("Loan.InsuredQuantityRatio updated to", value)
 	}
-	labels = append(labels, insuredQuantityRateLabel)
-	entries = append(entries, insuredQuantityRateEntry)
+	labels = append(labels, insuredQuantityRatioLabel)
+	entries = append(entries, insuredQuantityRatioEntry)
 
 	// Borrower
 

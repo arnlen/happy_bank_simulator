@@ -14,9 +14,8 @@ type Loan struct {
 	gorm.Model
 	Borrower         Borrower
 	BorrowerID       uint
-	Lenders          []*Lender `gorm:"many2many:loan_lenders;"`
-	Insurer          Insurer
-	InsurerID        uint
+	Lenders          []*Lender  `gorm:"many2many:loan_lenders;"`
+	Insurers         []*Insurer `gorm:"many2many:loan_insurers;"`
 	StartDate        string
 	EndDate          string
 	Duration         int
@@ -32,10 +31,8 @@ func (instance *Loan) ModelName() string {
 	return "emprunt"
 }
 
-func ListLoans() []Loan {
-	var loans []Loan
-	database.GetDB().Preload(clause.Associations).Find(&loans)
-	return loans
+func (instance *Loan) Refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
 }
 
 func (instance *Loan) Save() *Loan {
@@ -46,6 +43,20 @@ func (instance *Loan) Save() *Loan {
 	}
 
 	return instance
+}
+
+func (instance *Loan) AddLender(lender *Lender) {
+	database.GetDB().Model(&instance).Association("Lenders").Append(lender)
+}
+
+func (instance *Loan) AddInsurer(insurer *Insurer) {
+	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
+}
+
+func ListLoans() []Loan {
+	var loans []Loan
+	database.GetDB().Preload(clause.Associations).Find(&loans)
+	return loans
 }
 
 func NewDefaultLoan() *Loan {

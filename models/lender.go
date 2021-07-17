@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
@@ -26,12 +25,6 @@ func ListLenders() []Lender {
 	var lenders []Lender
 	database.GetDB().Preload(clause.Associations).Find(&lenders)
 	return lenders
-}
-
-func ListLendersWithoutLoan() []Lender {
-	// database.GetDB().Model(&Lender{}).Select("lenders.id").Joins("left join loans on loans.lender_id = lenders.id").
-	// GROS PROUT
-	// return lenders
 }
 
 func (instance *Lender) Save() *Lender {
