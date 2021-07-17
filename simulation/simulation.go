@@ -22,13 +22,10 @@ func Prepare() {
 
 // TODO
 //
-// For Loan
-// - Determine if the loan should be insured
-//
 // For borrower
 // - Determine if the borrower can take this loan (BalanceLeverageRatio)
 // - Place the initial security deposit
-// - Determine if the borrower should fail
+// - Determine when the borrower will fail
 //
 
 func createLoans() {
@@ -40,7 +37,14 @@ func createLoans() {
 
 		setupBorrowerForLoan(loan)
 		setupLendersForLoan(loan)
-		setupInsurersForLoan(loan)
+
+		isThisLoanInsured := positiveForProbability(configs.Loan.InsuredQuantityRatio)
+		if isThisLoanInsured {
+			fmt.Println("This loan is insured")
+			setupInsurersForLoan(loan)
+		} else {
+			fmt.Println("This loan is NOT insured 🚨")
+		}
 
 		printSummaryForLoan(*loan)
 	}
@@ -70,6 +74,13 @@ func assignBorrowerToLoan(borrower *models.Borrower, loan *models.Loan) {
 
 func setupBorrowerForLoan(loan *models.Loan) {
 	borrower := createDefaultBorrower()
+	willItFail := positiveForProbability(configs.Borrower.FailureRate)
+	if willItFail {
+		fmt.Println("This borrower will fail ❌")
+		// TODO: add date of failure to model
+	} else {
+		fmt.Println("This borrower is strong")
+	}
 	assignBorrowerToLoan(borrower, loan)
 }
 
@@ -278,17 +289,15 @@ func printSummaryForLoan(loan models.Loan) {
 	}
 }
 
-func PositiveForProbability(probability float64) bool {
+func positiveForProbability(probability float64) bool {
 	probability = probability * 100
 
 	rand.Seed(time.Now().UnixNano())
 	randomNumber := rand.Intn(100)
 
 	if randomNumber < int(probability) {
-		fmt.Println("True")
 		return true
 	} else {
-		fmt.Println("False")
 		return false
 	}
 }
