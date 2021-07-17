@@ -21,8 +21,8 @@ func (instance *Insurer) ModelName() string {
 	return "assureur"
 }
 
-func ListInsurers() []Insurer {
-	var insurers []Insurer
+func ListInsurers() []*Insurer {
+	var insurers []*Insurer
 	database.GetDB().Preload(clause.Associations).Find(&insurers)
 	return insurers
 }

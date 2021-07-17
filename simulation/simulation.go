@@ -33,185 +33,243 @@ func Prepare() {
 
 func createLoans() {
 	quantityOfLoansToCreate = configs.Loan.InitialQuantity
-
-	defaultLoanAmount := configs.Loan.DefaultAmount
 	fmt.Println("Quantity of Loans to create:", quantityOfLoansToCreate)
 
 	for i := 0; i < quantityOfLoansToCreate; i++ {
-		// Create empty loan
-		var currentLoan = models.NewDefaultLoan()
-		currentLoan.Save()
-		fmt.Printf("%s - Loan #%s created\n", strconv.Itoa(i+1), strconv.Itoa(int(currentLoan.ID)))
+		currentLoan := createEmptyLoan()
+		borrower := createDefaultBorrower()
+		assignBorrowerToLoan(borrower, currentLoan)
 
-		// Create one new default borrower
-		borrower := models.NewDefaultBorrower()
-		borrower.Save()
-		fmt.Printf("Borrower #%s created\n", strconv.Itoa(int(borrower.ID)))
+		setupLendersForLoan(currentLoan)
+		setupInsurersForLoan(currentLoan)
 
-		// Assign borrower to loan
-		currentLoan.Borrower = *borrower
-		currentLoan.Save()
-		borrower.Refresh()
-		fmt.Printf("Borrower assigned: Loan #%s's borrower = #%s\n", strconv.Itoa(int(currentLoan.ID)), strconv.Itoa(int(currentLoan.BorrowerID)))
-		fmt.Printf("Borrower #%s has now %s loans\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(len(borrower.Loans))))
+		printSummaryForLoan(*currentLoan)
+	}
+}
 
-		// ------ LENDERS --------
+func createEmptyLoan() *models.Loan {
+	var loan = models.NewDefaultLoan()
+	loan.Save()
+	fmt.Printf("Loan #%s created\n", strconv.Itoa(int(loan.ID)))
+	return loan
+}
 
-		// How many lenders required for this loan?
-		lendersQuantityRequired := calculateLendersQuantityRequired(defaultLoanAmount)
-		fmt.Printf("%s lenders are required\n", strconv.Itoa(lendersQuantityRequired))
+func createDefaultBorrower() *models.Borrower {
+	borrower := models.NewDefaultBorrower()
+	borrower.Save()
+	fmt.Printf("Borrower #%s created\n", strconv.Itoa(int(borrower.ID)))
+	return borrower
+}
 
-		// Find or create lenders
+func assignBorrowerToLoan(borrower *models.Borrower, loan *models.Loan) {
+	loan.Borrower = *borrower
+	loan.Save()
+	borrower.Refresh()
+	fmt.Printf("Borrower assigned: Loan #%s's borrower = #%s\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(int(loan.BorrowerID)))
+	fmt.Printf("Borrower #%s has now %s loans\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(len(borrower.Loans))))
+}
 
-		// 1. Find all lenders + prepare slice of available lenders
-		lenders := models.ListLenders()
-		fmt.Printf("%s lenders in the system\n", strconv.Itoa(len(lenders)))
-		var availableLenders []*models.Lender
+func setupLendersForLoan(loan *models.Loan) {
+	var availableLenders []*models.Lender
+	defaultLoanAmount := configs.Loan.DefaultAmount
 
-		// 2. Split lenders betweens those with loans and those without
-		var lendersWithLoan []*models.Lender
-		for _, lender := range lenders {
-			if len(lender.Loans) == 0 {
-				availableLenders = append(availableLenders, &lender)
-			} else {
-				lendersWithLoan = append(lendersWithLoan, &lender)
-			}
-		}
-		lenderAvailableQuantity := len(availableLenders)
-		fmt.Printf("%s lenders without any loans are available\n", strconv.Itoa(lenderAvailableQuantity))
+	lendersQuantityRequired := calculateLendersQuantityRequired(defaultLoanAmount)
+	lendersWithPositiveBalance := getLendersWithPositiveBalance()
 
-		if lenderAvailableQuantity < lendersQuantityRequired {
-			missingLendersQuantity := lendersQuantityRequired - lenderAvailableQuantity
-			fmt.Printf("Not enough available lenders: missing %s lenders\n", strconv.Itoa(missingLendersQuantity))
-			fmt.Println("Trying to find available lenders inside lenders with already at least 1 loan")
+	lendersWithoutLoan := getLendersWithoutLoan(lendersWithPositiveBalance)
+	availableLenders = append(availableLenders, lendersWithoutLoan...)
 
-			// 3. Within lenders with loan, check which are still available for the current loan
-			for _, lenderWithLoan := range lendersWithLoan {
-				for _, lenderLoan := range lenderWithLoan.Loans {
-					if lenderLoan.ID != currentLoan.ID {
-						availableLenders = append(availableLenders, lenderWithLoan)
-					}
-				}
-			}
-			lenderAvailableQuantity = len(availableLenders)
-			fmt.Printf("%s total lenders available, including lender with other loans than the current one\n", strconv.Itoa(lenderAvailableQuantity))
-		}
+	if len(availableLenders) < lendersQuantityRequired {
+		missingLendersQuantity := lendersQuantityRequired - len(availableLenders)
+		fmt.Printf("Not enough available lenders: missing %s lenders\n", strconv.Itoa(missingLendersQuantity))
+		fmt.Println("Trying to find available lenders inside lenders with already at least 1 loan")
 
-		if lenderAvailableQuantity < lendersQuantityRequired {
-			missingLendersQuantity := lendersQuantityRequired - lenderAvailableQuantity
-			fmt.Printf("Not enough available lenders: missing %s lenders\n", strconv.Itoa(missingLendersQuantity))
-			fmt.Printf("Creating %s new lenders\n", strconv.Itoa(missingLendersQuantity))
+		lendersWithLoan := getLendersWithLoanOtherThan(lendersWithPositiveBalance, loan)
+		availableLenders = append(availableLenders, lendersWithLoan...)
+	}
 
-			for i := 0; i < missingLendersQuantity; i++ {
-				lender := models.NewDefaultLender()
-				lender.Save()
-				availableLenders = append(availableLenders, lender)
-				fmt.Printf("%s/%s - Lender #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingLendersQuantity), strconv.Itoa(int(lender.ID)))
-			}
+	fmt.Printf("%s total lenders available, including lender with other loans than the current one\n", strconv.Itoa(len(availableLenders)))
 
-			lenderAvailableQuantity = len(availableLenders)
-			fmt.Printf("%s total lenders now available\n", strconv.Itoa(lenderAvailableQuantity))
-		}
+	if len(availableLenders) < lendersQuantityRequired {
+		missingLendersQuantity := lendersQuantityRequired - len(availableLenders)
+		fmt.Printf("Not enough available lenders: missing %s lenders\n", strconv.Itoa(missingLendersQuantity))
+		fmt.Printf("Creating %s new lenders\n", strconv.Itoa(missingLendersQuantity))
 
-		// Assign lenders to loan
-		fmt.Printf("Assigning those %s lenders to loan #%s\n", strconv.Itoa(lenderAvailableQuantity), strconv.Itoa(int(currentLoan.ID)))
-		for _, availableLender := range availableLenders {
-			currentLoan.AddLender(availableLender)
-			fmt.Printf("- Lender %s assigned\n", strconv.Itoa(int(availableLender.ID)))
-		}
+		availableLenders = createMissingLenders(missingLendersQuantity, availableLenders)
+	}
 
-		// currentLoan.Refresh()
-		currentLoanLenders := currentLoan.Lenders
-		fmt.Printf("Loan #%s has now %s lenders\n", strconv.Itoa(int(currentLoan.ID)), strconv.Itoa(len(currentLoanLenders)))
+	assignLendersToLoan(availableLenders, loan)
+}
 
-		// ------ INSURERS --------
+func setupInsurersForLoan(loan *models.Loan) {
+	var availableInsurers []*models.Insurer
+	defaultLoanAmount := configs.Loan.DefaultAmount
 
-		// How many insurers?
-		insurersQuantityRequired := calculateInsurersQuantityRequired(defaultLoanAmount)
-		fmt.Printf("%s insurers are required\n", strconv.Itoa(insurersQuantityRequired))
+	insurersQuantityRequired := calculateInsurersQuantityRequired(defaultLoanAmount)
+	InsurersWithPositiveBalance := getInsurersWithPositiveBalance()
 
-		// 1. Find all insurers + prepare slice of available insurers
-		insurers := models.ListInsurers()
-		fmt.Printf("%s insurers in the system\n", strconv.Itoa(len(insurers)))
-		var availableInsurers []*models.Insurer
+	insurersWithoutLoan := getInsurersWithoutLoan(InsurersWithPositiveBalance)
+	availableInsurers = append(availableInsurers, insurersWithoutLoan...)
 
-		// 2. Split insurers betweens those with loans and those without
-		var insurersWithLoan []*models.Insurer
-		for _, insurer := range insurers {
-			if len(insurer.Loans) == 0 {
-				availableInsurers = append(availableInsurers, &insurer)
-			} else {
-				insurersWithLoan = append(insurersWithLoan, &insurer)
-			}
-		}
-		insurerAvailableQuantity := len(availableInsurers)
-		fmt.Printf("%s insurers without any loans are available\n", strconv.Itoa(insurerAvailableQuantity))
+	if len(availableInsurers) < insurersQuantityRequired {
+		missingInsurersQuantity := insurersQuantityRequired - len(availableInsurers)
+		fmt.Printf("Not enough available Insurers: missing %s Insurers\n", strconv.Itoa(missingInsurersQuantity))
+		fmt.Println("Trying to find available Insurers inside Insurers with already at least 1 loan")
 
-		if insurerAvailableQuantity < insurersQuantityRequired {
-			missingInsurersQuantity := insurersQuantityRequired - insurerAvailableQuantity
-			fmt.Printf("Not enough available insurers: missing %s insurers\n", strconv.Itoa(missingInsurersQuantity))
-			fmt.Println("Trying to find available insurers inside insurers with already at least 1 loan")
+		InsurersWithLoan := getInsurersWithLoanOtherThan(InsurersWithPositiveBalance, loan)
+		availableInsurers = append(availableInsurers, InsurersWithLoan...)
+	}
 
-			// 3. Within insurers with loan, check which are still available for the current loan
-			for _, insurerWithLoan := range insurersWithLoan {
-				for _, insurerLoan := range insurerWithLoan.Loans {
-					if insurerLoan.ID != currentLoan.ID {
-						availableInsurers = append(availableInsurers, insurerWithLoan)
-					}
-				}
-			}
-			insurerAvailableQuantity = len(availableInsurers)
-			fmt.Printf("%s total insurers available, including insurer with other loans than the current one\n", strconv.Itoa(insurerAvailableQuantity))
-		}
+	fmt.Printf("%s total Insurers available, including Insurer with other loans than the current one\n", strconv.Itoa(len(availableInsurers)))
 
-		if insurerAvailableQuantity < insurersQuantityRequired {
-			missingInsurersQuantity := insurersQuantityRequired - insurerAvailableQuantity
-			fmt.Printf("Not enough available insurers: missing %s insurers\n", strconv.Itoa(missingInsurersQuantity))
-			fmt.Printf("Creating %s new insurers\n", strconv.Itoa(missingInsurersQuantity))
+	if len(availableInsurers) < insurersQuantityRequired {
+		missingInsurersQuantity := insurersQuantityRequired - len(availableInsurers)
+		fmt.Printf("Not enough available Insurers: missing %s Insurers\n", strconv.Itoa(missingInsurersQuantity))
+		fmt.Printf("Creating %s new Insurers\n", strconv.Itoa(missingInsurersQuantity))
 
-			for i := 0; i < missingInsurersQuantity; i++ {
-				insurer := models.NewDefaultInsurer()
-				insurer.Save()
-				availableInsurers = append(availableInsurers, insurer)
-				fmt.Printf("%s/%s - insurer #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingInsurersQuantity), strconv.Itoa(int(insurer.ID)))
-			}
+		availableInsurers = createMissingInsurers(missingInsurersQuantity, availableInsurers)
+	}
 
-			insurerAvailableQuantity = len(availableInsurers)
-			fmt.Printf("%s total insurers now available\n", strconv.Itoa(insurerAvailableQuantity))
-		}
+	assignInsurersToLoan(availableInsurers, loan)
+}
 
-		// Assign insurers to loan
-		fmt.Printf("Assigning those %s insurers to loan #%s\n", strconv.Itoa(insurerAvailableQuantity), strconv.Itoa(int(currentLoan.ID)))
-		for _, availableInsurer := range availableInsurers {
-			currentLoan.AddInsurer(availableInsurer)
-			fmt.Printf("- Insurer %s assigned\n", strconv.Itoa(int(availableInsurer.ID)))
-		}
-
-		// currentLoan.Refresh()
-		currentLoaninsurers := currentLoan.Insurers
-		fmt.Printf("Loan #%s has now %s insurers\n", strconv.Itoa(int(currentLoan.ID)), strconv.Itoa(len(currentLoaninsurers)))
-
-		// ------ SUMMARY --------
-
-		fmt.Printf("Summary for Loan #%s:\n", strconv.Itoa(int(currentLoan.ID)))
-		fmt.Printf("- 1 borrower: %s (#%s)\n", currentLoan.Borrower.Name, strconv.Itoa(int(currentLoan.Borrower.ID)))
-		fmt.Printf("- %s lenders:\n", strconv.Itoa(len(currentLoan.Lenders)))
-		for _, lender := range currentLoan.Lenders {
-			fmt.Printf("--- %s (#%s)\n", lender.Name, strconv.Itoa(int(lender.ID)))
-		}
-		fmt.Printf("- %s insurers:\n", strconv.Itoa(len(currentLoan.Insurers)))
-		for _, insurer := range currentLoan.Insurers {
-			fmt.Printf("--- %s (#%s)\n", insurer.Name, strconv.Itoa(int(insurer.ID)))
+func getLendersWithPositiveBalance() []*models.Lender {
+	lenders := models.ListLenders()
+	var lendersWithPositiveBalance []*models.Lender
+	for _, lender := range lenders {
+		if lender.Balance > 0 {
+			lendersWithPositiveBalance = append(lendersWithPositiveBalance, lender)
 		}
 	}
+	fmt.Printf("%s lenders with a positive balance\n", strconv.Itoa(len(lendersWithPositiveBalance)))
+	return lendersWithPositiveBalance
+}
+
+func getInsurersWithPositiveBalance() []*models.Insurer {
+	insurers := models.ListInsurers()
+	var insurersWithPositiveBalance []*models.Insurer
+	for _, insurer := range insurers {
+		if insurer.Balance > 0 {
+			insurersWithPositiveBalance = append(insurersWithPositiveBalance, insurer)
+		}
+	}
+	fmt.Printf("%s insurers with a positive balance\n", strconv.Itoa(len(insurersWithPositiveBalance)))
+	return insurersWithPositiveBalance
+}
+
+func getLendersWithoutLoan(lenders []*models.Lender) []*models.Lender {
+	var availableLendersWithoutLoan []*models.Lender
+	for _, lender := range lenders {
+		if len(lender.Loans) == 0 {
+			availableLendersWithoutLoan = append(availableLendersWithoutLoan, lender)
+		}
+	}
+	fmt.Printf("%s lenders without any loans are available\n", strconv.Itoa(len(availableLendersWithoutLoan)))
+	return availableLendersWithoutLoan
+}
+
+func getInsurersWithoutLoan(insurers []*models.Insurer) []*models.Insurer {
+	var availableInsurersWithoutLoan []*models.Insurer
+	for _, insurer := range insurers {
+		if len(insurer.Loans) == 0 {
+			availableInsurersWithoutLoan = append(availableInsurersWithoutLoan, insurer)
+		}
+	}
+	fmt.Printf("%s insurers without any loans are available\n", strconv.Itoa(len(availableInsurersWithoutLoan)))
+	return availableInsurersWithoutLoan
+}
+
+func getLendersWithLoanOtherThan(lenders []*models.Lender, loan *models.Loan) []*models.Lender {
+	var availableLendersWithLoan []*models.Lender
+	for _, lender := range lenders {
+		if len(lender.Loans) != 0 {
+			for _, lenderLoan := range lender.Loans {
+				if lenderLoan.ID != loan.ID {
+					availableLendersWithLoan = append(availableLendersWithLoan, lender)
+				}
+			}
+		}
+	}
+	fmt.Printf("%s lenders wit loans different than the current one are available\n", strconv.Itoa(len(availableLendersWithLoan)))
+	return availableLendersWithLoan
+}
+
+func getInsurersWithLoanOtherThan(insurers []*models.Insurer, loan *models.Loan) []*models.Insurer {
+	var availableInsurersWithLoan []*models.Insurer
+	for _, insurer := range insurers {
+		if len(insurer.Loans) != 0 {
+			for _, insurerLoan := range insurer.Loans {
+				if insurerLoan.ID != loan.ID {
+					availableInsurersWithLoan = append(availableInsurersWithLoan, insurer)
+				}
+			}
+		}
+	}
+	fmt.Printf("%s insurers wit loans different than the current one are available\n", strconv.Itoa(len(availableInsurersWithLoan)))
+	return availableInsurersWithLoan
+}
+
+func createMissingLenders(missingQuantity int, availableLenders []*models.Lender) []*models.Lender {
+	for i := 0; i < missingQuantity; i++ {
+		lender := models.NewDefaultLender()
+		lender.Save()
+		availableLenders = append(availableLenders, lender)
+		fmt.Printf("%s/%s - Lender #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(lender.ID)))
+	}
+	fmt.Printf("%s total lenders now available\n", strconv.Itoa(len(availableLenders)))
+	return availableLenders
+}
+
+func createMissingInsurers(missingQuantity int, availableInsurers []*models.Insurer) []*models.Insurer {
+	for i := 0; i < missingQuantity; i++ {
+		insurer := models.NewDefaultInsurer()
+		insurer.Save()
+		availableInsurers = append(availableInsurers, insurer)
+		fmt.Printf("%s/%s - Insurer #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(insurer.ID)))
+	}
+	fmt.Printf("%s total insurers now available\n", strconv.Itoa(len(availableInsurers)))
+	return availableInsurers
+}
+
+func assignLendersToLoan(lenders []*models.Lender, loan *models.Loan) {
+	fmt.Printf("Assigning %s lenders to loan #%s\n", strconv.Itoa(len(lenders)), strconv.Itoa(int(loan.ID)))
+	for _, availableLender := range lenders {
+		loan.AddLender(availableLender)
+		fmt.Printf("- Lender #%s assigned\n", strconv.Itoa(int(availableLender.ID)))
+	}
+	fmt.Printf("Loan #%s has now %s lenders\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(len(loan.Lenders)))
+}
+
+func assignInsurersToLoan(insurers []*models.Insurer, loan *models.Loan) {
+	fmt.Printf("Assigning %s insurers to loan #%s\n", strconv.Itoa(len(insurers)), strconv.Itoa(int(loan.ID)))
+	for _, availableInsurer := range insurers {
+		loan.AddInsurer(availableInsurer)
+		fmt.Printf("- Insurer #%s assigned\n", strconv.Itoa(int(availableInsurer.ID)))
+	}
+	fmt.Printf("Loan #%s has now %s insurers\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(len(loan.Insurers)))
 }
 
 func calculateLendersQuantityRequired(amount int) int {
 	maxAmountPerBorrower := configs.Lender.MaxAmountPerLoan
-	return int(math.Ceil(float64(amount) / float64(maxAmountPerBorrower)))
+	quantity := int(math.Ceil(float64(amount) / float64(maxAmountPerBorrower)))
+	fmt.Printf("%s lenders are required\n", strconv.Itoa(quantity))
+	return quantity
 }
 
 func calculateInsurersQuantityRequired(amount int) int {
 	maxAmountPerLoan := configs.Insurer.MaxAmountPerLoan
 	return int(math.Ceil(float64(amount) / float64(maxAmountPerLoan)))
+}
+
+func printSummaryForLoan(loan models.Loan) {
+	fmt.Printf("Summary for Loan #%s:\n", strconv.Itoa(int(loan.ID)))
+	fmt.Printf("- 1 borrower: %s (#%s)\n", loan.Borrower.Name, strconv.Itoa(int(loan.Borrower.ID)))
+	fmt.Printf("- %s lenders:\n", strconv.Itoa(len(loan.Lenders)))
+	for _, lender := range loan.Lenders {
+		fmt.Printf("--- %s (#%s)\n", lender.Name, strconv.Itoa(int(lender.ID)))
+	}
+	fmt.Printf("- %s insurers:\n", strconv.Itoa(len(loan.Insurers)))
+	for _, insurer := range loan.Insurers {
+		fmt.Printf("--- %s (#%s)\n", insurer.Name, strconv.Itoa(int(insurer.ID)))
+	}
 }
