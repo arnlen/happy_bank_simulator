@@ -3,20 +3,19 @@ package simulation
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"strconv"
-	"time"
 
 	"happy_bank_simulator/app/configs"
-	"happy_bank_simulator/database/helpers"
+	databaseHelpers "happy_bank_simulator/database/helpers"
+	"happy_bank_simulator/helpers"
 	"happy_bank_simulator/models"
 )
 
 var quantityOfLoansToCreate int
 
 func Prepare() {
-	helpers.DropBD()
-	helpers.MigrateDB()
+	databaseHelpers.DropBD()
+	databaseHelpers.MigrateDB()
 	createLoans()
 }
 
@@ -34,11 +33,16 @@ func createLoans() {
 
 	for i := 0; i < quantityOfLoansToCreate; i++ {
 		loan := createEmptyLoan()
+		willThisLoanFail := helpers.GetResultForProbability(configs.Borrower.FailureRate)
+		if willThisLoanFail {
+			fmt.Println("This loan will fail 🚨")
+			loan.SetRandomFailureDate()
+		}
 
 		setupBorrowerForLoan(loan)
 		setupLendersForLoan(loan)
 
-		isThisLoanInsured := positiveForProbability(configs.Loan.InsuredQuantityRatio)
+		isThisLoanInsured := helpers.GetResultForProbability(configs.Loan.InsuredQuantityRatio)
 		if isThisLoanInsured {
 			fmt.Println("This loan is insured")
 			setupInsurersForLoan(loan)
@@ -74,13 +78,6 @@ func assignBorrowerToLoan(borrower *models.Borrower, loan *models.Loan) {
 
 func setupBorrowerForLoan(loan *models.Loan) {
 	borrower := createDefaultBorrower()
-	willItFail := positiveForProbability(configs.Borrower.FailureRate)
-	if willItFail {
-		fmt.Println("This borrower will fail ❌")
-		// TODO: add date of failure to model
-	} else {
-		fmt.Println("This borrower is strong")
-	}
 	assignBorrowerToLoan(borrower, loan)
 }
 
@@ -289,15 +286,12 @@ func printSummaryForLoan(loan models.Loan) {
 	}
 }
 
-func positiveForProbability(probability float64) bool {
-	probability = probability * 100
+// func setFailureDateForLoan(loan *models.Loan) {
+// 	startDate := loan.StartDate
+// 	duration := loan.Duration
 
-	rand.Seed(time.Now().UnixNano())
-	randomNumber := rand.Intn(100)
+// 	numberOfMonthsBeforeFailure := rand.Intn(duration)
 
-	if randomNumber < int(probability) {
-		return true
-	} else {
-		return false
-	}
-}
+// 	// Add months to startDate
+// 	// Set random date between range
+// }

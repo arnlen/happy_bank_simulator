@@ -1,9 +1,13 @@
 package models
 
 import (
+	"fmt"
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
+	"happy_bank_simulator/helpers"
 	"log"
+	"math/rand"
+	"strconv"
 
 	"github.com/drum445/gofin"
 	"gorm.io/gorm"
@@ -25,6 +29,7 @@ type Loan struct {
 	InsuranceRate    float64
 	MonthlyCredit    float64
 	MonthlyInsurance float64
+	WillFailOn       string
 }
 
 func (instance *Loan) ModelName() string {
@@ -53,6 +58,16 @@ func (instance *Loan) AddInsurer(insurer *Insurer) {
 	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
 }
 
+func (instance *Loan) SetRandomFailureDate() {
+	startDate := helpers.ParseStringToDate(instance.StartDate)
+	numberOfMonthsBeforeFailure := rand.Intn(instance.Duration)
+	failureDate := helpers.AddMonthsToDate(startDate, numberOfMonthsBeforeFailure)
+	instance.WillFailOn = failureDate.Format("01/2006")
+
+	fmt.Printf("The failure will occure after %s months, on %s\n", strconv.Itoa(numberOfMonthsBeforeFailure), instance.WillFailOn)
+	instance.Save()
+}
+
 func ListLoans() []Loan {
 	var loans []Loan
 	database.GetDB().Preload(clause.Associations).Find(&loans)
@@ -70,6 +85,7 @@ func NewDefaultLoan() *Loan {
 	monthlyInsurance := CalculateMonthlyInsurancePayment(insuranceRate, amount)
 
 	return &Loan{
+		StartDate:        configs.General.StartDate,
 		Duration:         configs.Loan.DefaultDuration,
 		Amount:           configs.Loan.DefaultAmount,
 		InitialDeposit:   int(initialDeposit),

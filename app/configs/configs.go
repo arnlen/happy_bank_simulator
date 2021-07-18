@@ -38,7 +38,7 @@ type insurer struct {
 // Config intialization
 
 var General = general{
-	StartDate:             "1/01/21",
+	StartDate:             "07/2022",
 	Duration:              60,
 	CreditInterestRate:    0.03,
 	InsuranceInterestRate: 0.03,
@@ -47,14 +47,14 @@ var General = general{
 var Loan = loan{
 	InitialQuantity:      1,
 	DefaultAmount:        5000,
-	DefaultDuration:      12,
+	DefaultDuration:      25,
 	SecurityDepositRate:  0.1,
 	InsuredQuantityRatio: 0.8,
 }
 
 var Borrower = borrower{
 	InitialBalance:       5000,
-	FailureRate:          0.2,
+	FailureRate:          1,
 	BalanceLeverageRatio: 1.0,
 }
 
