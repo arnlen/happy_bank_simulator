@@ -119,6 +119,17 @@ func RenderConfigs() *fyne.Container {
 	labels = append(labels, insuredQuantityRatioLabel)
 	entries = append(entries, insuredQuantityRatioEntry)
 
+	borrowerFailureRateLabel := widget.NewLabel("Taux de défaut des prêts")
+	borrowerFailureRateEntry := widget.NewEntry()
+	borrowerFailureRateEntry.SetText(fmt.Sprintf("%1.2f", Loan.FailureRate))
+	borrowerFailureRateEntry.OnChanged = func(value string) {
+		borrowerFailureRate, _ := strconv.ParseFloat(value, 64)
+		Loan.FailureRate = borrowerFailureRate
+		fmt.Println("Loan.FailureRate updated to", value)
+	}
+	labels = append(labels, borrowerFailureRateLabel)
+	entries = append(entries, borrowerFailureRateEntry)
+
 	// Borrower
 
 	borrowerInitialBalanceLabel := widget.NewLabel("Solde initial des emprunteurs")
@@ -132,16 +143,7 @@ func RenderConfigs() *fyne.Container {
 	labels = append(labels, borrowerInitialBalanceLabel)
 	entries = append(entries, borrowerInitialBalanceEntry)
 
-	borrowerFailureRateLabel := widget.NewLabel("Taux de défaut des emprunteurs")
-	borrowerFailureRateEntry := widget.NewEntry()
-	borrowerFailureRateEntry.SetText(fmt.Sprintf("%1.2f", Borrower.FailureRate))
-	borrowerFailureRateEntry.OnChanged = func(value string) {
-		borrowerFailureRate, _ := strconv.ParseFloat(value, 64)
-		Borrower.FailureRate = borrowerFailureRate
-		fmt.Println("Borrower.FailureRate updated to", value)
-	}
-	labels = append(labels, borrowerFailureRateLabel)
-	entries = append(entries, borrowerFailureRateEntry)
+	// TODO: add fields for BalanceLeverageRatio
 
 	// Lender
 

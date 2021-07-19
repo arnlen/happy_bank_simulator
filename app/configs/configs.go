@@ -16,12 +16,12 @@ type loan struct {
 	DefaultAmount        int     // Default amount for a new loan
 	DefaultDuration      int     // Default duration for a new loan
 	SecurityDepositRate  float64 // For a given loan amout, how much % a borrower must stake
-	InsuredQuantityRatio float64 // How many loans are insured, in % of the total amount of loans
+	InsuredQuantityRatio float64 // How many loans are insured, in % of the total
+	FailureRate          float64 // How many loans should fail, in % of the total
 }
 
 type borrower struct {
 	InitialBalance       int     // Initial balance
-	FailureRate          float64 // How many borrower should fail, in % of the total amout of borrowers
 	BalanceLeverageRatio float64 // Ratio between the balance of the borrower and the amount he can borrow
 }
 
@@ -50,11 +50,11 @@ var Loan = loan{
 	DefaultDuration:      25,
 	SecurityDepositRate:  0.1,
 	InsuredQuantityRatio: 0.8,
+	FailureRate:          1,
 }
 
 var Borrower = borrower{
 	InitialBalance:       5000,
-	FailureRate:          1,
 	BalanceLeverageRatio: 1.0,
 }
 
