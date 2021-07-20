@@ -12,7 +12,6 @@ import (
 // TODO
 //
 // For borrower
-// - Determine if the borrower can take this loan (BalanceLeverageRatio)
 // - Place the initial security deposit
 //
 
@@ -28,15 +27,19 @@ func createLoans() {
 			loan.SetRandomFailureDate()
 		}
 
-		setupBorrowerForLoan(loan)
-		setupLendersForLoan(loan)
+		borrower := createDefaultBorrower()
+		if canThisBorrowerTakeThisLoan(borrower, loan) {
+			assignBorrowerToLoan(borrower, loan)
 
-		isThisLoanInsured := helpers.GetResultForProbability(configs.Loan.InsuredQuantityRatio)
-		if isThisLoanInsured {
-			fmt.Println("This loan is insured")
-			setupInsurersForLoan(loan)
-		} else {
-			fmt.Println("This loan is NOT insured 🚨")
+			setupLendersForLoan(loan)
+
+			isThisLoanInsured := helpers.GetResultForProbability(configs.Loan.InsuredQuantityRatio)
+			if isThisLoanInsured {
+				fmt.Println("This loan is insured")
+				setupInsurersForLoan(loan)
+			} else {
+				fmt.Println("This loan is NOT insured 🚨")
+			}
 		}
 
 		printSummaryForLoan(*loan)

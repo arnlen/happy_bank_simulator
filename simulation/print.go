@@ -9,7 +9,17 @@ import (
 
 func printSummaryForLoan(loan models.Loan) {
 	fmt.Printf("Summary for Loan #%s:\n", strconv.Itoa(int(loan.ID)))
-	fmt.Printf("- 1 borrower: %s (#%s)\n", loan.Borrower.Name, strconv.Itoa(int(loan.Borrower.ID)))
+
+	borrowerName := "None"
+
+	if loan.Borrower.Name != "" {
+		name := loan.Borrower.Name
+		id := loan.BorrowerID
+
+		borrowerName = fmt.Sprintf("%s (#%s)", name, strconv.Itoa(int(id)))
+	}
+
+	fmt.Printf("- Borrower: %s\n", borrowerName)
 	fmt.Printf("- %s lenders\n", strconv.Itoa(len(loan.Lenders)))
 	for _, lender := range loan.Lenders {
 		fmt.Printf("--- %s (#%s)\n", lender.Name, strconv.Itoa(int(lender.ID)))

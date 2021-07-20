@@ -8,11 +8,6 @@ import (
 	"happy_bank_simulator/models"
 )
 
-func setupBorrowerForLoan(loan *models.Loan) {
-	borrower := createDefaultBorrower()
-	assignBorrowerToLoan(borrower, loan)
-}
-
 func setupLendersForLoan(loan *models.Loan) {
 	var availableLenders []*models.Lender
 	defaultLoanAmount := configs.Loan.DefaultAmount
