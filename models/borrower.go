@@ -32,8 +32,7 @@ func (instance *Borrower) Refresh() {
 }
 
 func (instance *Borrower) Save() {
-	db := database.GetDB()
-	result := db.Save(instance)
+	result := database.GetDB().Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
@@ -58,6 +57,11 @@ func (instance *Borrower) GetTotalAmountBorrowed() int {
 
 	fmt.Printf("Borrower #%s has %s loans for a total of %s €\n", strconv.Itoa(int(instance.ID)), strconv.Itoa(len(loans)), strconv.Itoa(totalAmoutBorrowed))
 	return totalAmoutBorrowed
+}
+
+func (instance *Borrower) UpdateBalance(amount int) {
+	instance.Balance += amount
+	instance.Save()
 }
 
 // ------- Package methods -------

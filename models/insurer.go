@@ -25,14 +25,18 @@ func (instance *Insurer) ModelName() string {
 	return "assureur"
 }
 
-func (instance *Insurer) Save() *Insurer {
+func (instance *Insurer) Refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
+}
+
+func (instance *Insurer) Save() {
 	result := database.GetDB().Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
 	}
 
-	return instance
+	instance.Refresh()
 }
 
 // ------- Package methods -------

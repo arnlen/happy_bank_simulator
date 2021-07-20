@@ -29,6 +29,13 @@ func createLoans() {
 
 		borrower := createDefaultBorrower()
 		if canThisBorrowerTakeThisLoan(borrower, loan) {
+
+			initialDepositAmount := loan.InitialDeposit
+			models.NewTransaction(borrower, &depositAccount, initialDepositAmount)
+			fmt.Printf("Initial deposit of %s € placed:\n", strconv.Itoa(initialDepositAmount))
+			fmt.Printf("- Borrower #%s balance: %s €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(borrower.Balance))
+			fmt.Printf("- DepositAccount balance: %s €\n", strconv.Itoa(depositAccount.Balance))
+
 			assignBorrowerToLoan(borrower, loan)
 
 			setupLendersForLoan(loan)

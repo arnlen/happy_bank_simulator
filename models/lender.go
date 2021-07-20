@@ -25,14 +25,23 @@ func (instance *Lender) ModelName() string {
 	return "prêteur"
 }
 
-func (instance *Lender) Save() *Lender {
+func (instance *Lender) Refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
+}
+
+func (instance *Lender) Save() {
 	result := database.GetDB().Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
 	}
 
-	return instance
+	instance.Refresh()
+}
+
+func (instance *Lender) UpdateBalance(amount int) {
+	instance.Balance += amount
+	instance.Save()
 }
 
 // ------- Package methods -------

@@ -42,14 +42,14 @@ func (instance *Loan) Refresh() {
 	database.GetDB().Preload(clause.Associations).Find(&instance)
 }
 
-func (instance *Loan) Save() *Loan {
+func (instance *Loan) Save() {
 	result := database.GetDB().Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
 	}
 
-	return instance
+	instance.Refresh()
 }
 
 func (instance *Loan) AddLender(lender *Lender) {

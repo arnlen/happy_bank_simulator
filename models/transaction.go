@@ -28,7 +28,10 @@ func (instance *Transaction) Save() *Transaction {
 	return instance
 }
 
-func NewTransaction(from interface{}, to interface{}, amount int) *Transaction {
+func NewTransaction(from Actor, to Actor, amount int) *Transaction {
+	from.UpdateBalance(-amount)
+	to.UpdateBalance(amount)
+
 	return &Transaction{
 		From:   from,
 		To:     to,
