@@ -32,6 +32,8 @@ type Loan struct {
 	WillFailOn       string
 }
 
+// ------- Instance methods -------
+
 func (instance *Loan) ModelName() string {
 	return "emprunt"
 }
@@ -67,6 +69,8 @@ func (instance *Loan) SetRandomFailureDate() {
 	fmt.Printf("The failure will occure after %s months, on %s\n", strconv.Itoa(numberOfMonthsBeforeFailure), instance.WillFailOn)
 	instance.Save()
 }
+
+// ------- Package methods -------
 
 func ListLoans() []Loan {
 	var loans []Loan

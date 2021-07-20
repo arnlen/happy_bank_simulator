@@ -18,9 +18,9 @@ func setupLendersForLoan(loan *models.Loan) {
 	defaultLoanAmount := configs.Loan.DefaultAmount
 
 	lendersQuantityRequired := calculateLendersQuantityRequired(defaultLoanAmount)
-	lendersWithPositiveBalance := getLendersWithPositiveBalance()
+	lendersWithPositiveBalance := models.ListLendersWithPositiveBalance()
 
-	lendersWithoutLoan := getLendersWithoutLoan(lendersWithPositiveBalance)
+	lendersWithoutLoan := models.ListLendersWithoutLoan(lendersWithPositiveBalance)
 	availableLenders = append(availableLenders, lendersWithoutLoan...)
 
 	if len(availableLenders) < lendersQuantityRequired {
@@ -28,7 +28,7 @@ func setupLendersForLoan(loan *models.Loan) {
 		fmt.Printf("Not enough available lenders: missing %s lenders\n", strconv.Itoa(missingLendersQuantity))
 		fmt.Println("Trying to find available lenders inside lenders with already at least 1 loan")
 
-		lendersWithLoan := getLendersWithLoanOtherThan(lendersWithPositiveBalance, loan)
+		lendersWithLoan := models.ListLendersWithLoanOtherThan(lendersWithPositiveBalance, loan)
 		availableLenders = append(availableLenders, lendersWithLoan...)
 	}
 
@@ -50,9 +50,9 @@ func setupInsurersForLoan(loan *models.Loan) {
 	defaultLoanAmount := configs.Loan.DefaultAmount
 
 	insurersQuantityRequired := calculateInsurersQuantityRequired(defaultLoanAmount)
-	InsurersWithPositiveBalance := getInsurersWithPositiveBalance()
+	InsurersWithPositiveBalance := models.ListInsurersWithPositiveBalance()
 
-	insurersWithoutLoan := getInsurersWithoutLoan(InsurersWithPositiveBalance)
+	insurersWithoutLoan := models.ListInsurersWithoutLoan(InsurersWithPositiveBalance)
 	availableInsurers = append(availableInsurers, insurersWithoutLoan...)
 
 	if len(availableInsurers) < insurersQuantityRequired {
@@ -60,7 +60,7 @@ func setupInsurersForLoan(loan *models.Loan) {
 		fmt.Printf("Not enough available Insurers: missing %s Insurers\n", strconv.Itoa(missingInsurersQuantity))
 		fmt.Println("Trying to find available Insurers inside Insurers with already at least 1 loan")
 
-		InsurersWithLoan := getInsurersWithLoanOtherThan(InsurersWithPositiveBalance, loan)
+		InsurersWithLoan := models.ListInsurersWithLoanOtherThan(InsurersWithPositiveBalance, loan)
 		availableInsurers = append(availableInsurers, InsurersWithLoan...)
 	}
 

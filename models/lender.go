@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
+	"strconv"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,14 +19,10 @@ type Lender struct {
 	Balance int
 }
 
+// ------- Instance methods -------
+
 func (instance *Lender) ModelName() string {
 	return "prêteur"
-}
-
-func ListLenders() []*Lender {
-	var lenders []*Lender
-	database.GetDB().Preload(clause.Associations).Find(&lenders)
-	return lenders
 }
 
 func (instance *Lender) Save() *Lender {
@@ -35,6 +33,52 @@ func (instance *Lender) Save() *Lender {
 	}
 
 	return instance
+}
+
+// ------- Package methods -------
+
+func ListLenders() []*Lender {
+	var lenders []*Lender
+	database.GetDB().Preload(clause.Associations).Find(&lenders)
+	return lenders
+}
+
+func ListLendersWithPositiveBalance() []*Lender {
+	lenders := ListLenders()
+	var lendersWithPositiveBalance []*Lender
+	for _, lender := range lenders {
+		if lender.Balance > 0 {
+			lendersWithPositiveBalance = append(lendersWithPositiveBalance, lender)
+		}
+	}
+	fmt.Printf("%s lenders with a positive balance\n", strconv.Itoa(len(lendersWithPositiveBalance)))
+	return lendersWithPositiveBalance
+}
+
+func ListLendersWithoutLoan(lenders []*Lender) []*Lender {
+	var availableLendersWithoutLoan []*Lender
+	for _, lender := range lenders {
+		if len(lender.Loans) == 0 {
+			availableLendersWithoutLoan = append(availableLendersWithoutLoan, lender)
+		}
+	}
+	fmt.Printf("%s lenders without any loans are available\n", strconv.Itoa(len(availableLendersWithoutLoan)))
+	return availableLendersWithoutLoan
+}
+
+func ListLendersWithLoanOtherThan(lenders []*Lender, loan *Loan) []*Lender {
+	var availableLendersWithLoan []*Lender
+	for _, lender := range lenders {
+		if len(lender.Loans) != 0 {
+			for _, lenderLoan := range lender.Loans {
+				if lenderLoan.ID != loan.ID {
+					availableLendersWithLoan = append(availableLendersWithLoan, lender)
+				}
+			}
+		}
+	}
+	fmt.Printf("%s lenders wit loans different than the current one are available\n", strconv.Itoa(len(availableLendersWithLoan)))
+	return availableLendersWithLoan
 }
 
 func NewLender(name string, balance int) *Lender {

@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
+	"strconv"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,14 +19,10 @@ type Insurer struct {
 	Balance int
 }
 
+// ------- Instance methods -------
+
 func (instance *Insurer) ModelName() string {
 	return "assureur"
-}
-
-func ListInsurers() []*Insurer {
-	var insurers []*Insurer
-	database.GetDB().Preload(clause.Associations).Find(&insurers)
-	return insurers
 }
 
 func (instance *Insurer) Save() *Insurer {
@@ -35,6 +33,52 @@ func (instance *Insurer) Save() *Insurer {
 	}
 
 	return instance
+}
+
+// ------- Package methods -------
+
+func ListInsurers() []*Insurer {
+	var insurers []*Insurer
+	database.GetDB().Preload(clause.Associations).Find(&insurers)
+	return insurers
+}
+
+func ListInsurersWithPositiveBalance() []*Insurer {
+	insurers := ListInsurers()
+	var insurersWithPositiveBalance []*Insurer
+	for _, insurer := range insurers {
+		if insurer.Balance > 0 {
+			insurersWithPositiveBalance = append(insurersWithPositiveBalance, insurer)
+		}
+	}
+	fmt.Printf("%s insurers with a positive balance\n", strconv.Itoa(len(insurersWithPositiveBalance)))
+	return insurersWithPositiveBalance
+}
+
+func ListInsurersWithoutLoan(insurers []*Insurer) []*Insurer {
+	var availableInsurersWithoutLoan []*Insurer
+	for _, insurer := range insurers {
+		if len(insurer.Loans) == 0 {
+			availableInsurersWithoutLoan = append(availableInsurersWithoutLoan, insurer)
+		}
+	}
+	fmt.Printf("%s insurers without any loans are available\n", strconv.Itoa(len(availableInsurersWithoutLoan)))
+	return availableInsurersWithoutLoan
+}
+
+func ListInsurersWithLoanOtherThan(insurers []*Insurer, loan *Loan) []*Insurer {
+	var availableInsurersWithLoan []*Insurer
+	for _, insurer := range insurers {
+		if len(insurer.Loans) != 0 {
+			for _, insurerLoan := range insurer.Loans {
+				if insurerLoan.ID != loan.ID {
+					availableInsurersWithLoan = append(availableInsurersWithLoan, insurer)
+				}
+			}
+		}
+	}
+	fmt.Printf("%s insurers wit loans different than the current one are available\n", strconv.Itoa(len(availableInsurersWithLoan)))
+	return availableInsurersWithLoan
 }
 
 func NewInsurer(name string, balance int) *Insurer {
