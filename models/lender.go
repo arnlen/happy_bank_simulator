@@ -12,6 +12,10 @@ import (
 	"syreclabs.com/go/faker"
 )
 
+// Declare conformity with Actor interface
+var _ ModelBase = (*Lender)(nil)
+var _ Actor = (*Lender)(nil)
+
 type Lender struct {
 	gorm.Model
 	Name    string

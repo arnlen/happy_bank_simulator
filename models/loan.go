@@ -14,6 +14,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// Declare conformity with Actor interface
+var _ ModelBase = (*Loan)(nil)
+
 type Loan struct {
 	gorm.Model
 	Borrower         Borrower

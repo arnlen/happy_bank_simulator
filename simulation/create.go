@@ -9,12 +9,6 @@ import (
 	"happy_bank_simulator/models"
 )
 
-// TODO
-//
-// For borrower
-// - Place the initial security deposit
-//
-
 func createLoans() {
 	quantityOfLoansToCreate = configs.Loan.InitialQuantity
 	fmt.Println("Quantity of Loans to create:", quantityOfLoansToCreate)

@@ -12,6 +12,10 @@ import (
 	"syreclabs.com/go/faker"
 )
 
+// Declare conformity with Actor interface
+var _ ModelBase = (*Insurer)(nil)
+var _ Actor = (*Insurer)(nil)
+
 type Insurer struct {
 	gorm.Model
 	Name    string
@@ -37,6 +41,11 @@ func (instance *Insurer) Save() {
 	}
 
 	instance.Refresh()
+}
+
+func (instance *Insurer) UpdateBalance(amount int) {
+	instance.Balance += amount
+	instance.Save()
 }
 
 // ------- Package methods -------

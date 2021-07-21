@@ -5,7 +5,11 @@ import (
 	"log"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+// Declare conformity with Actor interface
+var _ ModelBase = (*Transaction)(nil)
 
 type Transaction struct {
 	gorm.Model
@@ -18,14 +22,18 @@ func (instance *Transaction) ModelName() string {
 	return "transaction"
 }
 
-func (instance *Transaction) Save() *Transaction {
+func (instance *Transaction) Refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
+}
+
+func (instance *Transaction) Save() {
 	result := database.GetDB().Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
 	}
 
-	return instance
+	instance.Refresh()
 }
 
 func NewTransaction(from Actor, to Actor, amount int) *Transaction {
