@@ -12,7 +12,7 @@ import (
 	"syreclabs.com/go/faker"
 )
 
-// Declare conformity with Actor interface
+// Declare conformity with interfaces
 var _ ModelBase = (*Lender)(nil)
 var _ Actor = (*Lender)(nil)
 
@@ -46,6 +46,10 @@ func (instance *Lender) Save() {
 func (instance *Lender) UpdateBalance(amount int) {
 	instance.Balance += amount
 	instance.Save()
+}
+
+func (instance *Lender) GetID() uint {
+	return instance.ID
 }
 
 // ------- Package methods -------
@@ -108,6 +112,12 @@ func NewDefaultLender() *Lender {
 		Loans:   []*Loan{},
 		Balance: configs.Lender.InitialBalance,
 	}
+}
+
+func CreateDefaultLender() *Lender {
+	lender := NewDefaultLender()
+	lender.Save()
+	return lender
 }
 
 func CreateLender(name string, balance int) *Lender {

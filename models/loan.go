@@ -32,6 +32,7 @@ type Loan struct {
 	InsuranceRate    float64
 	MonthlyCredit    float64
 	MonthlyInsurance float64
+	IsInsured        bool
 	WillFailOn       string
 }
 
@@ -101,6 +102,12 @@ func NewDefaultLoan() *Loan {
 		MonthlyCredit:    monthlyCredit,
 		MonthlyInsurance: monthlyInsurance,
 	}
+}
+
+func CreateEmptyLoan() *Loan {
+	var loan = NewDefaultLoan()
+	loan.Save()
+	return loan
 }
 
 func CalculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount int) float64 {

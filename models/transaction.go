@@ -13,9 +13,12 @@ var _ ModelBase = (*Transaction)(nil)
 
 type Transaction struct {
 	gorm.Model
-	From   interface{}
-	To     interface{}
-	Amount int
+	SenderType   string
+	SenderID     int
+	ReceiverType string
+	ReceiverID   int
+	Amount       int
+	isDeposit    bool
 }
 
 func (instance *Transaction) ModelName() string {
@@ -36,15 +39,45 @@ func (instance *Transaction) Save() {
 	instance.Refresh()
 }
 
-func NewTransaction(from Actor, to Actor, amount int) *Transaction {
-	from.UpdateBalance(-amount)
-	to.UpdateBalance(amount)
+// ------- Package methods -------
+
+func ListTransactions() []*Transaction {
+	var transactions []*Transaction
+	database.GetDB().Preload(clause.Associations).Find(&transactions)
+	return transactions
+}
+
+func NewTransaction(sender Actor, receiver Actor, amount int) *Transaction {
+	sender.UpdateBalance(-amount)
+	receiver.UpdateBalance(amount)
 
 	return &Transaction{
-		From:   from,
-		To:     to,
-		Amount: amount,
+		SenderID:     int(sender.GetID()),
+		SenderType:   sender.ModelName(),
+		ReceiverID:   int(receiver.GetID()),
+		ReceiverType: receiver.ModelName(),
+		Amount:       amount,
+		isDeposit:    false,
 	}
+}
+
+func NewDepositTransaction(borrower Borrower, amount int) *Transaction {
+	borrower.UpdateBalance(-amount)
+
+	return &Transaction{
+		SenderID:     int(borrower.GetID()),
+		SenderType:   borrower.ModelName(),
+		ReceiverType: "",
+		ReceiverID:   0,
+		Amount:       amount,
+		isDeposit:    true,
+	}
+}
+
+func CreateDepositTransaction(borrower Borrower, amount int) *Transaction {
+	depositTransaction := NewDepositTransaction(borrower, amount)
+	depositTransaction.Save()
+	return depositTransaction
 }
 
 func (instance *Transaction) Create() *gorm.DB {

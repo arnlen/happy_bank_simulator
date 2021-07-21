@@ -12,6 +12,7 @@ var modelList = []interface{}{
 	&models.Insurer{},
 	&models.Lender{},
 	&models.Loan{},
+	&models.Transaction{},
 }
 
 func GetModelList() []interface{} {

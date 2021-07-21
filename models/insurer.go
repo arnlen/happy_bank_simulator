@@ -48,6 +48,10 @@ func (instance *Insurer) UpdateBalance(amount int) {
 	instance.Save()
 }
 
+func (instance *Insurer) GetID() uint {
+	return instance.ID
+}
+
 // ------- Package methods -------
 
 func ListInsurers() []*Insurer {
@@ -108,6 +112,12 @@ func NewDefaultInsurer() *Insurer {
 		Loans:   []*Loan{},
 		Balance: configs.Insurer.InitialBalance,
 	}
+}
+
+func CreateDefaultInsurer() *Insurer {
+	insurer := NewDefaultInsurer()
+	insurer.Save()
+	return insurer
 }
 
 func CreateInsurer(name string, balance int) *Insurer {

@@ -9,5 +9,7 @@ type ModelBase interface {
 }
 
 type Actor interface {
+	ModelBase
 	UpdateBalance(amount int)
+	GetID() uint
 }

@@ -1,20 +1,36 @@
 package simulation
 
 import (
+	"fmt"
 	databaseHelpers "happy_bank_simulator/database/helpers"
 	"happy_bank_simulator/models"
-)
-
-var (
-	quantityOfLoansToCreate int
-	depositAccount          models.DepositAccount
+	"strconv"
 )
 
 func Prepare() {
 	databaseHelpers.DropBD()
 	databaseHelpers.MigrateDB()
 
-	depositAccount.Balance = 0
+	loans := createInitialLoans()
+	borrowers := createBorrowersForLoans(loans)
 
-	createLoans()
+	for index, loan := range loans {
+		assignBorrowerToLoan(borrowers[index], loan)
+		setupLendersForLoan(loan)
+
+		if loan.IsInsured {
+			setupInsurersForLoan(loan)
+		}
+
+		printSummaryForLoan(*loan)
+	}
+
+	transactions := models.ListTransactions()
+	fmt.Println(len(transactions), "transactions in database")
+
+	for _, transaction := range transactions {
+		sender := fmt.Sprintf("%s #%s", transaction.SenderType, strconv.Itoa(int(transaction.SenderID)))
+		receiver := fmt.Sprintf("%s #%s", transaction.ReceiverType, strconv.Itoa(int(transaction.ReceiverID)))
+		fmt.Printf("Transaction #%s from %s to %s of %s €\n", strconv.Itoa(int(transaction.ID)), sender, receiver, strconv.Itoa(transaction.Amount))
+	}
 }

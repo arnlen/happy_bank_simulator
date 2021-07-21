@@ -68,6 +68,10 @@ func (instance *Borrower) UpdateBalance(amount int) {
 	instance.Save()
 }
 
+func (instance *Borrower) GetID() uint {
+	return instance.ID
+}
+
 // ------- Package methods -------
 
 func FindBorrower(id int) *Borrower {
@@ -96,6 +100,12 @@ func NewDefaultBorrower() *Borrower {
 		Loans:   []Loan{},
 		Balance: configs.Borrower.InitialBalance,
 	}
+}
+
+func CreateDefaultBorrower() *Borrower {
+	borrower := NewDefaultBorrower()
+	borrower.Save()
+	return borrower
 }
 
 func CreateBorrower(name string, balance int) *Borrower {
