@@ -2,11 +2,8 @@ package loans
 
 import (
 	"fmt"
-	"happy_bank_simulator/database"
 	"happy_bank_simulator/models"
 	"strconv"
-
-	"gorm.io/gorm/clause"
 )
 
 type Controller struct{}
@@ -20,19 +17,23 @@ func (c *Controller) GetModelName(pluralize bool) string {
 }
 
 func (c *Controller) GetLoanTableData() [][]string {
-	var loans []models.Loan
-	database.GetDB().Preload(clause.Associations).Find(&loans)
+	loans := models.ListLoans()
 
 	loanTableData := [][]string{
 		{"ID", "Débiteur", "Créancier", "Assureur", "Montant", "Durée"}}
 
 	for _, loan := range loans {
+		lenders := loan.Lenders
+		lendersString := fmt.Sprintf("%s lenders", strconv.Itoa(len(lenders)))
+		insurers := loan.Insurers
+		insurersString := fmt.Sprintf("%s insurers", strconv.Itoa(len(insurers)))
+
 		loanRow := []string{
 			strconv.Itoa(int(loan.ID)),
 			loan.Borrower.Name,
-			loan.Lender.Name,
-			loan.Insurer.Name,
-			fmt.Sprintf("%8.0f €", loan.Amount),
+			lendersString,
+			insurersString,
+			fmt.Sprintf("%s €", strconv.Itoa(loan.Amount)),
 			fmt.Sprintf("%s mois", strconv.Itoa(int(loan.Duration))),
 		}
 
@@ -43,13 +44,11 @@ func (c *Controller) GetLoanTableData() [][]string {
 }
 
 func (c *Controller) GetLoanStringList() []string {
+	loans := models.ListLoans()
 	var loanStringList []string
 
-	var loans []models.Loan
-	database.GetDB().Preload(clause.Associations).Find(&loans)
-
 	for _, loan := range loans {
-		string := fmt.Sprintf("%s - %8.0f € ", strconv.Itoa(int(loan.ID)), loan.Amount)
+		string := fmt.Sprintf("%s - %s € ", strconv.Itoa(int(loan.ID)), strconv.Itoa(loan.Amount))
 		loanStringList = append(loanStringList, string)
 	}
 

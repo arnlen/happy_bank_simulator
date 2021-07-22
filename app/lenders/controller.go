@@ -2,11 +2,8 @@ package lenders
 
 import (
 	"fmt"
-	"happy_bank_simulator/database"
 	"happy_bank_simulator/models"
 	"strconv"
-
-	"gorm.io/gorm/clause"
 )
 
 type Controller struct{}
@@ -20,8 +17,7 @@ func (c *Controller) GetModelName(pluralize bool) string {
 }
 
 func (c *Controller) GetLenderTableData() [][]string {
-	var lenders []models.Lender
-	database.GetDB().Preload(clause.Associations).Find(&lenders)
+	lenders := models.ListLenders()
 
 	lenderTableData := [][]string{
 		{"ID", "Name", "Balance"}}
@@ -30,7 +26,7 @@ func (c *Controller) GetLenderTableData() [][]string {
 		lenderRow := []string{
 			strconv.Itoa(int(lender.ID)),
 			lender.Name,
-			fmt.Sprintf("%8.0f €", lender.Balance),
+			fmt.Sprintf("%s €", strconv.Itoa(lender.Balance)),
 		}
 
 		lenderTableData = append(lenderTableData, lenderRow)

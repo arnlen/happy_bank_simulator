@@ -43,8 +43,7 @@ func RenderChart() {
 }
 
 func GenerateJson() {
-	loan := models.Loan{}
-	loans := loan.List()
+	loans := models.ListLoans()
 
 	var nodes []node
 	var links []link
@@ -56,7 +55,7 @@ func GenerateJson() {
 			Name:       loanName,
 			Y:          float64(i * 10),
 			X:          float64(i * 10),
-			SymbolSize: loan.Amount / 100000,
+			SymbolSize: float64(loan.Amount) / 100000,
 		}
 
 		borrowerName := fmt.Sprintf("Borrower %s", strconv.Itoa(int(loan.BorrowerID)))
@@ -65,7 +64,7 @@ func GenerateJson() {
 			Name:       borrowerName,
 			Y:          float64(i * 10),
 			X:          float64(i * 10),
-			SymbolSize: loan.Borrower.Balance / 100000,
+			SymbolSize: float64(loan.Borrower.Balance) / 100000,
 		}
 
 		lenderName := fmt.Sprintf("Lender %s", strconv.Itoa(int(loan.LenderID)))
@@ -74,7 +73,7 @@ func GenerateJson() {
 			Name:       lenderName,
 			Y:          float64(i * 10),
 			X:          float64(i * 10),
-			SymbolSize: loan.Lender.Balance / 100000,
+			SymbolSize: float64(loan.Lender.Balance) / 100000,
 		}
 
 		insurerName := fmt.Sprintf("Insurer %s", strconv.Itoa(int(loan.InsurerID)))
@@ -83,7 +82,7 @@ func GenerateJson() {
 			Name:       insurerName,
 			Y:          float64(i * 10),
 			X:          float64(i * 10),
-			SymbolSize: loan.Lender.Balance / 100000,
+			SymbolSize: float64(loan.Lender.Balance) / 100000,
 		}
 
 		nodes = append(nodes, loanNode, borrowerNode, lenderNode, insurerNode)
@@ -210,11 +209,11 @@ func Examples() {
 	page.AddCharts(
 		graphCircle(),
 	)
-	
+
 	f, err := os.Create("app/charts/html/graph.html")
 	if err != nil {
 		panic(err)
-		
+
 	}
 
 	page.Render(io.MultiWriter(f))

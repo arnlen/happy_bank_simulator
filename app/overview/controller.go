@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"happy_bank_simulator/database"
 	databaseHelpers "happy_bank_simulator/database/helpers"
-	"happy_bank_simulator/factories"
 	"happy_bank_simulator/models"
 
 	"gorm.io/gorm/clause"
@@ -32,8 +31,7 @@ func (c *Controller) GetCounters() []int {
 }
 
 func (c *Controller) PopulateDatabase() {
-	factories.CreateSeedState()
-	fmt.Println("Database populated")
+	fmt.Println("Deactivated")
 }
 
 func (c *Controller) WipeDatabase() {
