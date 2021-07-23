@@ -30,7 +30,8 @@ func createInitialLoans() []*models.Loan {
 		willThisLoanFail := helpers.GetResultForProbability(configs.Loan.FailureRate)
 		if willThisLoanFail {
 			fmt.Println("This loan will fail 🚨")
-			loan.SetRandomFailureDate()
+			numberOfMonthsBeforeFailure := loan.SetRandomFailureDate()
+			fmt.Printf("The failure will occure after %s months, on %s\n", strconv.Itoa(numberOfMonthsBeforeFailure), loan.WillFailOn)
 		}
 
 		loans = append(loans, loan)

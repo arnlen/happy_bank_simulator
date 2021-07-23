@@ -22,7 +22,13 @@ func calculateInsurersQuantityRequired(amount int) int {
 }
 
 func canThisBorrowerTakeThisLoan(borrower *models.Borrower, loan *models.Loan) bool {
+	loans := borrower.Loans
+	totalAmountBorrowed := borrower.GetTotalAmountBorrowed()
+	fmt.Printf("Borrower #%s has %s loans for a total of %s €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(len(loans)), strconv.Itoa(totalAmountBorrowed))
+
 	borrowerNetBalance := borrower.GetNetBalance()
+	fmt.Printf("Borrower #%s net balance is %s €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(borrowerNetBalance))
+
 	loanAmount := loan.Amount
 	balanceLeverageRatio := configs.Borrower.BalanceLeverageRatio
 

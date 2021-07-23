@@ -1,13 +1,12 @@
 package models
 
 import (
-	"fmt"
+	"log"
+	"math/rand"
+
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"happy_bank_simulator/helpers"
-	"log"
-	"math/rand"
-	"strconv"
 
 	"github.com/drum445/gofin"
 	"gorm.io/gorm"
@@ -64,14 +63,14 @@ func (instance *Loan) AddInsurer(insurer *Insurer) {
 	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
 }
 
-func (instance *Loan) SetRandomFailureDate() {
+func (instance *Loan) SetRandomFailureDate() int {
 	startDate := helpers.ParseStringToDate(instance.StartDate)
 	numberOfMonthsBeforeFailure := rand.Intn(instance.Duration)
 	failureDate := helpers.AddMonthsToDate(startDate, numberOfMonthsBeforeFailure)
 	instance.WillFailOn = failureDate.Format("01/2006")
-
-	fmt.Printf("The failure will occure after %s months, on %s\n", strconv.Itoa(numberOfMonthsBeforeFailure), instance.WillFailOn)
 	instance.Save()
+
+	return numberOfMonthsBeforeFailure
 }
 
 // ------- Package methods -------

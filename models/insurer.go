@@ -1,11 +1,10 @@
 package models
 
 import (
-	"fmt"
+	"log"
+
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
-	"log"
-	"strconv"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -68,7 +67,6 @@ func ListInsurersWithPositiveBalance() []*Insurer {
 			insurersWithPositiveBalance = append(insurersWithPositiveBalance, insurer)
 		}
 	}
-	fmt.Printf("%s insurers with a positive balance\n", strconv.Itoa(len(insurersWithPositiveBalance)))
 	return insurersWithPositiveBalance
 }
 
@@ -79,7 +77,6 @@ func ListInsurersWithoutLoan(insurers []*Insurer) []*Insurer {
 			availableInsurersWithoutLoan = append(availableInsurersWithoutLoan, insurer)
 		}
 	}
-	fmt.Printf("%s insurers without any loans are available\n", strconv.Itoa(len(availableInsurersWithoutLoan)))
 	return availableInsurersWithoutLoan
 }
 
@@ -94,7 +91,6 @@ func ListInsurersWithLoanOtherThan(insurers []*Insurer, loan *Loan) []*Insurer {
 			}
 		}
 	}
-	fmt.Printf("%s insurers wit loans different than the current one are available\n", strconv.Itoa(len(availableInsurersWithLoan)))
 	return availableInsurersWithLoan
 }
 

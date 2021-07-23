@@ -5,7 +5,7 @@ import (
 
 	"happy_bank_simulator/app/borrowers"
 	borrowerViews "happy_bank_simulator/app/borrowers/views"
-	"happy_bank_simulator/app/configs"
+	configViews "happy_bank_simulator/app/configs/views"
 	appHelpers "happy_bank_simulator/app/helpers"
 	"happy_bank_simulator/app/insurers"
 	insurerViews "happy_bank_simulator/app/insurers/views"
@@ -35,22 +35,22 @@ func InitApp() {
 	var loansController = loans.Controller{}
 	var transactionsController = transactions.Controller{}
 
-	configsView := configs.RenderConfigs()
+	configEditView := configViews.RenderEdit()
 	overviewView := overview.RenderOverview()
-	loansView := loanViews.RenderIndex()
-	borrowersView := borrowerViews.RenderIndex()
-	lendersView := lenderViews.RenderIndex()
-	insurersView := insurerViews.RenderIndex()
-	transactionsView := transactionViews.RenderIndex()
+	loanIndexView := loanViews.RenderIndex()
+	borrowerIndexView := borrowerViews.RenderIndex()
+	lenderIndexView := lenderViews.RenderIndex()
+	insurerIndexView := insurerViews.RenderIndex()
+	transactionIndexView := transactionViews.RenderIndex()
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("Paramètres", configsView),
+		container.NewTabItem("Paramètres", configEditView),
 		container.NewTabItem("Aperçu", overviewView),
-		container.NewTabItem(strings.Title(loansController.GetModelName(true)), loansView),
-		container.NewTabItem(strings.Title(borrowersController.GetModelName(true)), borrowersView),
-		container.NewTabItem(strings.Title(lendersController.GetModelName(true)), lendersView),
-		container.NewTabItem(strings.Title(insurersController.GetModelName(true)), insurersView),
-		container.NewTabItem(strings.Title(transactionsController.GetModelName(true)), transactionsView),
+		container.NewTabItem(strings.Title(loansController.GetModelName(true)), loanIndexView),
+		container.NewTabItem(strings.Title(borrowersController.GetModelName(true)), borrowerIndexView),
+		container.NewTabItem(strings.Title(lendersController.GetModelName(true)), lenderIndexView),
+		container.NewTabItem(strings.Title(insurersController.GetModelName(true)), insurerIndexView),
+		container.NewTabItem(strings.Title(transactionsController.GetModelName(true)), transactionIndexView),
 	)
 
 	tabs.SetTabLocation(container.TabLocationLeading)

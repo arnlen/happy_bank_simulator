@@ -1,16 +1,13 @@
 package models
 
 import (
-	"fmt"
 	"log"
-	"strconv"
 
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
 	"syreclabs.com/go/faker"
 )
 
@@ -47,7 +44,6 @@ func (instance *Borrower) Save() {
 
 func (instance *Borrower) GetNetBalance() int {
 	netBalance := instance.Balance - instance.GetTotalAmountBorrowed()
-	fmt.Printf("Borrower #%s net balance is %s €\n", strconv.Itoa(int(instance.ID)), strconv.Itoa(netBalance))
 	return netBalance
 }
 
@@ -58,8 +54,6 @@ func (instance *Borrower) GetTotalAmountBorrowed() int {
 	for _, loan := range loans {
 		totalAmoutBorrowed += loan.Amount
 	}
-
-	fmt.Printf("Borrower #%s has %s loans for a total of %s €\n", strconv.Itoa(int(instance.ID)), strconv.Itoa(len(loans)), strconv.Itoa(totalAmoutBorrowed))
 	return totalAmoutBorrowed
 }
 
