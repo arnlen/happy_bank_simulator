@@ -9,8 +9,7 @@ import (
 
 // TODO
 //
-// - Fix duplicated lender assignation when more than two loans to create
-// - Refactor output messages: remove messages from models and place them only on controller side
+// Remove duplicated methods in models
 
 func main() {
 	database.InitDB()

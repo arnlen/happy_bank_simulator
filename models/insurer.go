@@ -59,6 +59,7 @@ func ListInsurers() []*Insurer {
 	return insurers
 }
 
+// Duplicate with Lender: same method
 func ListInsurersWithPositiveBalance() []*Insurer {
 	insurers := ListInsurers()
 	var insurersWithPositiveBalance []*Insurer
@@ -70,6 +71,7 @@ func ListInsurersWithPositiveBalance() []*Insurer {
 	return insurersWithPositiveBalance
 }
 
+// Duplicate with Lender: same method
 func ListInsurersWithoutLoan(insurers []*Insurer) []*Insurer {
 	var availableInsurersWithoutLoan []*Insurer
 	for _, insurer := range insurers {
@@ -80,12 +82,13 @@ func ListInsurersWithoutLoan(insurers []*Insurer) []*Insurer {
 	return availableInsurersWithoutLoan
 }
 
+// Duplicate with Lender: same method
 func ListInsurersWithLoanOtherThan(insurers []*Insurer, loan *Loan) []*Insurer {
 	var availableInsurersWithLoan []*Insurer
 	for _, insurer := range insurers {
 		if len(insurer.Loans) != 0 {
 			for _, insurerLoan := range insurer.Loans {
-				if insurerLoan.ID != loan.ID {
+				if insurerLoan.ID != loan.ID && !isInsurerAlreadyInSlice(*insurer, insurers) {
 					availableInsurersWithLoan = append(availableInsurersWithLoan, insurer)
 				}
 			}
@@ -125,4 +128,15 @@ func CreateInsurer(name string, balance int) *Insurer {
 	}
 
 	return insurer
+}
+
+// Duplicate with Lender: same method
+func isInsurerAlreadyInSlice(newInsurer Insurer, insurers []*Insurer) bool {
+	for _, insurer := range insurers {
+		if insurer.ID == newInsurer.ID {
+			return true
+		}
+	}
+
+	return false
 }

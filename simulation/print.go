@@ -8,7 +8,7 @@ import (
 )
 
 func printSummaryForLoan(loan models.Loan) {
-	fmt.Printf("Summary for Loan #%s:\n", strconv.Itoa(int(loan.ID)))
+	fmt.Printf("\n--------------\n\nSummary for Loan #%s:\n", strconv.Itoa(int(loan.ID)))
 
 	borrowerName := "None"
 
