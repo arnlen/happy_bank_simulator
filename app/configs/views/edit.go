@@ -2,9 +2,10 @@ package views
 
 import (
 	"fmt"
+	"strconv"
+
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/simulation"
-	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"

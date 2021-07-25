@@ -67,9 +67,14 @@ func RenderOverview() *fyne.Container {
 		generateChartsButton,
 	)
 
+	refreshButton := widget.NewButton("Refraichir", func() {
+		updateCounters(overviewController.GetCounters())
+		fmt.Println("Refreshed!")
+	})
+
 	updateCounters(overviewController.GetCounters())
 
-	return container.NewBorder(nil, hbox, nil, nil, vbox)
+	return container.NewBorder(refreshButton, hbox, nil, nil, vbox)
 }
 
 func updateCounters(counters []int) {
