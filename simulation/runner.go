@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"happy_bank_simulator/app/configs"
 	databaseHelpers "happy_bank_simulator/database/helpers"
+	"happy_bank_simulator/helpers"
 	"happy_bank_simulator/models"
 )
 
@@ -17,6 +19,8 @@ import (
 // 4. Print a simulation summary including:
 // 		- Total loans at the beginning vs total loans at the end (diff = failures)
 // 		- Total money in the economy at the beginning vs at the end
+//
+// - Create transaction for every loan assignation
 //
 // - Bind "borrowers", "insurers", "lenders", "loans" and "transactions" to tabs to see ouput of simulation
 
@@ -42,8 +46,45 @@ func Prepare() {
 	fmt.Println(len(transactions), "transactions in database")
 
 	for _, transaction := range transactions {
-		sender := fmt.Sprintf("%s #%s", transaction.SenderType, strconv.Itoa(int(transaction.SenderID)))
-		receiver := fmt.Sprintf("%s #%s", transaction.ReceiverType, strconv.Itoa(int(transaction.ReceiverID)))
-		fmt.Printf("Transaction #%s from %s to %s of %s €\n", strconv.Itoa(int(transaction.ID)), sender, receiver, strconv.Itoa(transaction.Amount))
+		transaction.Print()
+	}
+}
+
+func Run() {
+	fmt.Println("\nRunning a new simulation! 🚀")
+	simulationStartDate := helpers.ParseStringToDate(configs.General.StartDate)
+	simulationDuration := configs.General.Duration
+
+	for monthIndex := 0; monthIndex < simulationDuration-1; monthIndex++ {
+		currentDate := helpers.AddMonthsToDate(simulationStartDate, monthIndex)
+		fmt.Printf("Month %s - %s 📅\n", strconv.Itoa(monthIndex), helpers.TimeDateToString(currentDate))
+		loans := models.ListLoans()
+
+		for _, loan := range loans {
+			loan.UpdateActiveStatus(currentDate)
+			if loan.IsActive {
+				fmt.Printf("Loan #%s is active.\n", strconv.Itoa(int(loan.ID)))
+				borrower := loan.Borrower
+
+				if helpers.ParseStringToDate(loan.WillFailOn) == currentDate {
+					fmt.Printf("Loan #%s is failed.\n", strconv.Itoa(int(loan.ID)))
+					borrower.UpdateBalance(0)
+					fmt.Printf("Borrower #%s updated to 0.\n", strconv.Itoa(int(borrower.ID)))
+					continue
+				}
+
+				for _, lender := range loan.Lenders {
+					models.CreateTransaction(&borrower, lender, int(loan.MonthlyCredit)).Print()
+				}
+
+				if loan.IsInsured {
+					for _, insurer := range loan.Insurers {
+						models.CreateTransaction(&borrower, insurer, int(loan.MonthlyInsurance)).Print()
+					}
+				}
+			} else {
+				fmt.Printf("Loan #%s is inactive.\n", strconv.Itoa(int(loan.ID)))
+			}
+		}
 	}
 }

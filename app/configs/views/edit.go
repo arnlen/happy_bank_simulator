@@ -211,6 +211,7 @@ func RenderEdit() *fyne.Container {
 
 	runButton := widget.NewButtonWithIcon("Run simulation", theme.ContentAddIcon(), func() {
 		simulation.Prepare()
+		simulation.Run()
 	})
 
 	masterContainer := container.NewBorder(nil, runButton, nil, nil, vBox)

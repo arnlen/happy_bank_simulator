@@ -1,7 +1,9 @@
 package models
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 
 	"happy_bank_simulator/database"
 
@@ -48,11 +50,11 @@ func ListTransactions() []*Transaction {
 	return transactions
 }
 
-func NewTransaction(sender Actor, receiver Actor, amount int) *Transaction {
+func CreateTransaction(sender Actor, receiver Actor, amount int) *Transaction {
 	sender.UpdateBalance(-amount)
 	receiver.UpdateBalance(amount)
 
-	return &Transaction{
+	transaction := &Transaction{
 		SenderID:     int(sender.GetID()),
 		SenderType:   sender.ModelName(),
 		ReceiverID:   int(receiver.GetID()),
@@ -60,6 +62,9 @@ func NewTransaction(sender Actor, receiver Actor, amount int) *Transaction {
 		Amount:       amount,
 		isDeposit:    false,
 	}
+
+	transaction.Save()
+	return transaction
 }
 
 func NewDepositTransaction(borrower Borrower, amount int) *Transaction {
@@ -83,4 +88,10 @@ func CreateDepositTransaction(borrower Borrower, amount int) *Transaction {
 
 func (instance *Transaction) Create() *gorm.DB {
 	return database.GetDB().Create(instance)
+}
+
+func (instance *Transaction) Print() {
+	sender := fmt.Sprintf("%s #%s", instance.SenderType, strconv.Itoa(int(instance.SenderID)))
+	receiver := fmt.Sprintf("%s #%s", instance.ReceiverType, strconv.Itoa(int(instance.ReceiverID)))
+	fmt.Printf("Transaction #%s: %s ➡ %s of %s €\n", strconv.Itoa(int(instance.ID)), sender, receiver, strconv.Itoa(instance.Amount))
 }

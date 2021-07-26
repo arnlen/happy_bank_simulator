@@ -3,6 +3,7 @@ package models
 import (
 	"log"
 	"math/rand"
+	"time"
 
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
@@ -32,6 +33,7 @@ type Loan struct {
 	MonthlyCredit    float64
 	MonthlyInsurance float64
 	IsInsured        bool
+	IsActive         bool
 	WillFailOn       string
 }
 
@@ -73,6 +75,26 @@ func (instance *Loan) SetRandomFailureDate() int {
 	return numberOfMonthsBeforeFailure
 }
 
+func (instance *Loan) UpdateActiveStatus(currentDate time.Time) {
+	endDate := helpers.ParseStringToDate(instance.EndDate)
+
+	if currentDate.After(endDate) {
+		instance.IsActive = false
+		instance.Save()
+		return
+	}
+
+	if instance.WillFailOn != "" {
+		failureDate := helpers.ParseStringToDate(instance.WillFailOn)
+
+		if currentDate.After(failureDate) {
+			instance.IsActive = false
+			instance.Save()
+			return
+		}
+	}
+}
+
 // ------- Package methods -------
 
 func ListLoans() []Loan {
@@ -81,8 +103,15 @@ func ListLoans() []Loan {
 	return loans
 }
 
+func ListActiveLoans() []Loan {
+	var loans []Loan
+	database.GetDB().Preload(clause.Associations).Where("IsActive = ?", true).Find(&loans)
+	return loans
+}
+
 func NewDefaultLoan() *Loan {
 	amount := configs.Loan.DefaultAmount
+	startDate := configs.General.StartDate
 	duration := configs.Loan.DefaultDuration
 	creditRate := configs.General.CreditInterestRate
 	insuranceRate := configs.General.InsuranceInterestRate
@@ -90,16 +119,19 @@ func NewDefaultLoan() *Loan {
 	initialDeposit := configs.Loan.SecurityDepositRate * float64(amount)
 	monthlyCredit := CalculateMonthlyCreditPayment(creditRate, duration, amount)
 	monthlyInsurance := CalculateMonthlyInsurancePayment(insuranceRate, amount)
+	endDate := helpers.TimeDateToString(helpers.AddMonthsToDate(helpers.ParseStringToDate(startDate), duration))
 
 	return &Loan{
-		StartDate:        configs.General.StartDate,
+		StartDate:        startDate,
 		Duration:         configs.Loan.DefaultDuration,
+		EndDate:          endDate,
 		Amount:           configs.Loan.DefaultAmount,
 		InitialDeposit:   int(initialDeposit),
 		CreditRate:       creditRate,
 		InsuranceRate:    insuranceRate,
 		MonthlyCredit:    monthlyCredit,
 		MonthlyInsurance: monthlyInsurance,
+		IsActive:         true,
 	}
 }
 
