@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"happy_bank_simulator/database"
 
@@ -20,7 +21,7 @@ type Transaction struct {
 	SenderID     int
 	ReceiverType string
 	ReceiverID   int
-	Amount       int
+	Amount       float64
 	isDeposit    bool
 }
 
@@ -50,7 +51,7 @@ func ListTransactions() []*Transaction {
 	return transactions
 }
 
-func CreateTransaction(sender Actor, receiver Actor, amount int) *Transaction {
+func CreateTransaction(sender Actor, receiver Actor, amount float64) *Transaction {
 	sender.UpdateBalance(-amount)
 	receiver.UpdateBalance(amount)
 
@@ -67,7 +68,7 @@ func CreateTransaction(sender Actor, receiver Actor, amount int) *Transaction {
 	return transaction
 }
 
-func NewDepositTransaction(borrower Borrower, amount int) *Transaction {
+func NewDepositTransaction(borrower Borrower, amount float64) *Transaction {
 	borrower.UpdateBalance(-amount)
 
 	return &Transaction{
@@ -80,7 +81,7 @@ func NewDepositTransaction(borrower Borrower, amount int) *Transaction {
 	}
 }
 
-func CreateDepositTransaction(borrower Borrower, amount int) *Transaction {
+func CreateDepositTransaction(borrower Borrower, amount float64) *Transaction {
 	depositTransaction := NewDepositTransaction(borrower, amount)
 	depositTransaction.Save()
 	return depositTransaction
@@ -91,7 +92,7 @@ func (instance *Transaction) Create() *gorm.DB {
 }
 
 func (instance *Transaction) Print() {
-	sender := fmt.Sprintf("%s #%s", instance.SenderType, strconv.Itoa(int(instance.SenderID)))
-	receiver := fmt.Sprintf("%s #%s", instance.ReceiverType, strconv.Itoa(int(instance.ReceiverID)))
-	fmt.Printf("Transaction #%s: %s ➡ %s of %s €\n", strconv.Itoa(int(instance.ID)), sender, receiver, strconv.Itoa(instance.Amount))
+	sender := fmt.Sprintf("%s #%s", strings.Title(instance.SenderType), strconv.Itoa(int(instance.SenderID)))
+	receiver := fmt.Sprintf("%s #%s", strings.Title(instance.ReceiverType), strconv.Itoa(int(instance.ReceiverID)))
+	fmt.Printf("🔁 Transaction #%s: %s => %s of %1.2f €\n", strconv.Itoa(int(instance.ID)), sender, receiver, instance.Amount)
 }

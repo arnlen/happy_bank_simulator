@@ -1,9 +1,10 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
-	"time"
+	"strconv"
 
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
@@ -26,8 +27,8 @@ type Loan struct {
 	StartDate        string
 	EndDate          string
 	Duration         int
-	Amount           int
-	InitialDeposit   int
+	Amount           float64
+	InitialDeposit   float64
 	CreditRate       float64
 	InsuranceRate    float64
 	MonthlyCredit    float64
@@ -40,7 +41,7 @@ type Loan struct {
 // ------- Instance methods -------
 
 func (instance *Loan) ModelName() string {
-	return "emprunt"
+	return "loan"
 }
 
 func (instance *Loan) Refresh() {
@@ -75,24 +76,39 @@ func (instance *Loan) SetRandomFailureDate() int {
 	return numberOfMonthsBeforeFailure
 }
 
-func (instance *Loan) UpdateActiveStatus(currentDate time.Time) {
-	endDate := helpers.ParseStringToDate(instance.EndDate)
+func (instance *Loan) Print() {
+	fmt.Printf("\n---[ LOAN #%s ]---\n", strconv.Itoa(int(instance.ID)))
+	fmt.Println("- Start date:", instance.StartDate)
+	fmt.Println("- End date:", instance.EndDate)
+	fmt.Println("- Amount:", instance.Amount, "€")
 
-	if currentDate.After(endDate) {
-		instance.IsActive = false
-		instance.Save()
-		return
+	willFailText := "No"
+	if instance.WillFailOn != "" {
+		willFailText = fmt.Sprintf("Yes, on %s", instance.WillFailOn)
+	}
+	fmt.Println("- Will fail?", willFailText)
+
+	borrowerName := "None"
+	if instance.Borrower.Name != "" {
+		name := instance.Borrower.Name
+		id := instance.BorrowerID
+		borrowerName = fmt.Sprintf("%s (#%s)", name, strconv.Itoa(int(id)))
+	}
+	fmt.Printf("- Borrower: %s\n", borrowerName)
+
+	fmt.Printf("- %s lenders\n", strconv.Itoa(len(instance.Lenders)))
+	for _, lender := range instance.Lenders {
+		fmt.Printf("--- %s (#%s)\n", lender.Name, strconv.Itoa(int(lender.ID)))
 	}
 
-	if instance.WillFailOn != "" {
-		failureDate := helpers.ParseStringToDate(instance.WillFailOn)
-
-		if currentDate.After(failureDate) {
-			instance.IsActive = false
-			instance.Save()
-			return
+	fmt.Println("- Is insured?", instance.IsInsured)
+	if instance.IsInsured {
+		fmt.Printf("- %s insurers\n", strconv.Itoa(len(instance.Insurers)))
+		for _, insurer := range instance.Insurers {
+			fmt.Printf("--- %s (#%s)\n", insurer.Name, strconv.Itoa(int(insurer.ID)))
 		}
 	}
+	fmt.Printf("\n")
 }
 
 // ------- Package methods -------
@@ -105,7 +121,7 @@ func ListLoans() []Loan {
 
 func ListActiveLoans() []Loan {
 	var loans []Loan
-	database.GetDB().Preload(clause.Associations).Where("IsActive = ?", true).Find(&loans)
+	database.GetDB().Preload(clause.Associations).Where("is_active = ?", true).Find(&loans)
 	return loans
 }
 
@@ -126,7 +142,7 @@ func NewDefaultLoan() *Loan {
 		Duration:         configs.Loan.DefaultDuration,
 		EndDate:          endDate,
 		Amount:           configs.Loan.DefaultAmount,
-		InitialDeposit:   int(initialDeposit),
+		InitialDeposit:   initialDeposit,
 		CreditRate:       creditRate,
 		InsuranceRate:    insuranceRate,
 		MonthlyCredit:    monthlyCredit,
@@ -141,10 +157,10 @@ func CreateEmptyLoan() *Loan {
 	return loan
 }
 
-func CalculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount int) float64 {
+func CalculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount float64) float64 {
 	return gofin.PMT(interestCreditRate, float64(duration), float64(-amount), 0, 0)
 }
 
-func CalculateMonthlyInsurancePayment(interestInsuranceRate float64, amount int) float64 {
+func CalculateMonthlyInsurancePayment(interestInsuranceRate float64, amount float64) float64 {
 	return (float64(interestInsuranceRate) * float64(amount) / 100) / 12
 }

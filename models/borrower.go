@@ -19,13 +19,13 @@ type Borrower struct {
 	gorm.Model
 	Name    string
 	Loans   []Loan
-	Balance int
+	Balance float64
 }
 
 // ------- Instance methods -------
 
 func (instance *Borrower) ModelName() string {
-	return "emprunteur"
+	return "borrower"
 }
 
 func (instance *Borrower) Refresh() {
@@ -42,14 +42,14 @@ func (instance *Borrower) Save() {
 	instance.Refresh()
 }
 
-func (instance *Borrower) GetNetBalance() int {
+func (instance *Borrower) GetNetBalance() float64 {
 	netBalance := instance.Balance - instance.GetTotalAmountBorrowed()
 	return netBalance
 }
 
-func (instance *Borrower) GetTotalAmountBorrowed() int {
+func (instance *Borrower) GetTotalAmountBorrowed() float64 {
 	loans := instance.Loans
-	totalAmoutBorrowed := 0
+	totalAmoutBorrowed := 0.0
 
 	for _, loan := range loans {
 		totalAmoutBorrowed += loan.Amount
@@ -57,7 +57,7 @@ func (instance *Borrower) GetTotalAmountBorrowed() int {
 	return totalAmoutBorrowed
 }
 
-func (instance *Borrower) UpdateBalance(amount int) {
+func (instance *Borrower) UpdateBalance(amount float64) {
 	instance.Balance += amount
 	instance.Save()
 }
@@ -80,7 +80,7 @@ func ListBorrowers() []Borrower {
 	return borrowers
 }
 
-func NewBorrower(name string, balance int) *Borrower {
+func NewBorrower(name string, balance float64) *Borrower {
 	return &Borrower{
 		Name:    name,
 		Loans:   []Loan{},
@@ -102,7 +102,7 @@ func CreateDefaultBorrower() *Borrower {
 	return borrower
 }
 
-func CreateBorrower(name string, balance int) *Borrower {
+func CreateBorrower(name string, balance float64) *Borrower {
 	borrower := NewBorrower(name, balance)
 	result := database.GetDB().Create(&borrower)
 

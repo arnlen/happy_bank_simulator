@@ -33,7 +33,7 @@ func (c *Controller) GetLoanTableData() [][]string {
 			loan.Borrower.Name,
 			lendersString,
 			insurersString,
-			fmt.Sprintf("%s €", strconv.Itoa(loan.Amount)),
+			fmt.Sprintf("%1.2f €", loan.Amount),
 			fmt.Sprintf("%s mois", strconv.Itoa(int(loan.Duration))),
 		}
 
@@ -48,7 +48,7 @@ func (c *Controller) GetLoanStringList() []string {
 	var loanStringList []string
 
 	for _, loan := range loans {
-		string := fmt.Sprintf("%s - %s € ", strconv.Itoa(int(loan.ID)), strconv.Itoa(loan.Amount))
+		string := fmt.Sprintf("%s - %1.2f € ", strconv.Itoa(int(loan.ID)), loan.Amount)
 		loanStringList = append(loanStringList, string)
 	}
 

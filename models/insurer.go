@@ -19,13 +19,13 @@ type Insurer struct {
 	gorm.Model
 	Name    string
 	Loans   []*Loan `gorm:"many2many:loan_insurers;"`
-	Balance int
+	Balance float64
 }
 
 // ------- Instance methods -------
 
 func (instance *Insurer) ModelName() string {
-	return "assureur"
+	return "insurer"
 }
 
 func (instance *Insurer) Refresh() {
@@ -42,7 +42,7 @@ func (instance *Insurer) Save() {
 	instance.Refresh()
 }
 
-func (instance *Insurer) UpdateBalance(amount int) {
+func (instance *Insurer) UpdateBalance(amount float64) {
 	instance.Balance += amount
 	instance.Save()
 }
@@ -97,7 +97,7 @@ func ListInsurersWithLoanOtherThan(insurers []*Insurer, loan *Loan) []*Insurer {
 	return availableInsurersWithLoan
 }
 
-func NewInsurer(name string, balance int) *Insurer {
+func NewInsurer(name string, balance float64) *Insurer {
 	return &Insurer{
 		Name:    name,
 		Loans:   []*Loan{},
@@ -119,7 +119,7 @@ func CreateDefaultInsurer() *Insurer {
 	return insurer
 }
 
-func CreateInsurer(name string, balance int) *Insurer {
+func CreateInsurer(name string, balance float64) *Insurer {
 	insurer := NewInsurer(name, balance)
 	result := database.GetDB().Create(&insurer)
 

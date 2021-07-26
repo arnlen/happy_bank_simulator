@@ -26,7 +26,7 @@ func (c *Controller) GetInsurerTableData() [][]string {
 		insurerRow := []string{
 			strconv.Itoa(int(insurer.ID)),
 			insurer.Name,
-			fmt.Sprintf("%s €", strconv.Itoa(insurer.Balance)),
+			fmt.Sprintf("%1.2f €", insurer.Balance),
 		}
 
 		insurerTableData = append(insurerTableData, insurerRow)

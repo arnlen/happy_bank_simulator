@@ -39,7 +39,7 @@ func Prepare() {
 			setupInsurersForLoan(loan)
 		}
 
-		printSummaryForLoan(*loan)
+		loan.Print()
 	}
 
 	transactions := models.ListTransactions()
@@ -57,34 +57,86 @@ func Run() {
 
 	for monthIndex := 0; monthIndex < simulationDuration-1; monthIndex++ {
 		currentDate := helpers.AddMonthsToDate(simulationStartDate, monthIndex)
-		fmt.Printf("Month %s - %s 📅\n", strconv.Itoa(monthIndex), helpers.TimeDateToString(currentDate))
-		loans := models.ListLoans()
+		fmt.Printf("\n--------- Start of Month #%s - %s 📅 ---------\n", strconv.Itoa(monthIndex+1), helpers.TimeDateToString(currentDate))
+		loans := models.ListActiveLoans()
+
+		if len(loans) == 0 {
+			fmt.Println("No active loan... 💤 ")
+			continue
+		}
+		fmt.Println(len(loans), "active loans")
 
 		for _, loan := range loans {
-			loan.UpdateActiveStatus(currentDate)
-			if loan.IsActive {
-				fmt.Printf("Loan #%s is active.\n", strconv.Itoa(int(loan.ID)))
-				borrower := loan.Borrower
+			loanEndDate := helpers.ParseStringToDate(loan.EndDate)
+			borrower := loan.Borrower
+			lenders := loan.Lenders
+			quantityOfLenders := len(lenders)
+			insurers := loan.Insurers
+			quantityOfInsurers := len(insurers)
 
-				if helpers.ParseStringToDate(loan.WillFailOn) == currentDate {
-					fmt.Printf("Loan #%s is failed.\n", strconv.Itoa(int(loan.ID)))
+			loan.Print()
+
+			if currentDate.After(loanEndDate) {
+				fmt.Printf("Loan #%s is over.\n", strconv.Itoa(int(loan.ID)))
+				loan.IsActive = false
+				loan.Save()
+				continue
+			}
+
+			if loan.WillFailOn != "" {
+				failureDate := helpers.ParseStringToDate(loan.WillFailOn)
+
+				if currentDate.After(failureDate) {
+					fmt.Printf("Loan #%s just fails this month. ❌\n", strconv.Itoa(int(loan.ID)))
+					loan.IsActive = false
+					loan.Save()
+
 					borrower.UpdateBalance(0)
-					fmt.Printf("Borrower #%s updated to 0.\n", strconv.Itoa(int(borrower.ID)))
-					continue
-				}
+					fmt.Printf("- Borrower #%s's balance: 0 €.\n", strconv.Itoa(int(borrower.ID)))
 
-				for _, lender := range loan.Lenders {
-					models.CreateTransaction(&borrower, lender, int(loan.MonthlyCredit)).Print()
-				}
+					if loan.IsInsured {
+						fmt.Printf("- Loan #%s is insured by %s insurers. 🆘\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(quantityOfInsurers))
 
-				if loan.IsInsured {
-					for _, insurer := range loan.Insurers {
-						models.CreateTransaction(&borrower, insurer, int(loan.MonthlyInsurance)).Print()
+						amountAssuredByInsurer := loan.Amount / float64(quantityOfInsurers)
+						amountToRefundByLender := amountAssuredByInsurer / float64(quantityOfLenders)
+
+						for _, insurer := range loan.Insurers {
+							fmt.Printf("--- Insurer #%s will refund %s lenders.\n", strconv.Itoa(int(insurer.ID)), strconv.Itoa(quantityOfLenders))
+
+							for _, lender := range lenders {
+								models.CreateTransaction(insurer, lender, amountToRefundByLender).Print()
+							}
+						}
+						continue
+
+					} else {
+						fmt.Printf("- Loan #%s isn't insured. 🕳\n", strconv.Itoa(int(loan.ID)))
+						continue
 					}
 				}
-			} else {
-				fmt.Printf("Loan #%s is inactive.\n", strconv.Itoa(int(loan.ID)))
+			}
+
+			fmt.Printf("Loan #%s has %s lenders, Borrower #%s will pay %1.2f € to each of them. 🏦\n",
+				strconv.Itoa(int(loan.ID)),
+				strconv.Itoa(quantityOfLenders),
+				strconv.Itoa(int(borrower.ID)),
+				loan.MonthlyCredit)
+			for _, lender := range loan.Lenders {
+				models.CreateTransaction(&borrower, lender, loan.MonthlyCredit).Print()
+			}
+
+			if loan.IsInsured {
+				fmt.Printf("Loan #%s has %s insurers, Borrower #%s will pay %1.2f € to each of them. 🏥\n",
+					strconv.Itoa(int(loan.ID)),
+					strconv.Itoa(quantityOfInsurers),
+					strconv.Itoa(int(borrower.ID)),
+					loan.MonthlyInsurance)
+				for _, insurer := range loan.Insurers {
+					models.CreateTransaction(&borrower, insurer, loan.MonthlyInsurance).Print()
+				}
 			}
 		}
+
+		fmt.Printf("\n--------- End of Month #%s - %s ---------\n", strconv.Itoa(monthIndex+1), helpers.TimeDateToString(currentDate))
 	}
 }

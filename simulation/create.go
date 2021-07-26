@@ -50,8 +50,8 @@ func createBorrowersForLoans(loans []*models.Loan) []*models.Borrower {
 			initialDepositAmount := loan.InitialDeposit
 			models.CreateDepositTransaction(*borrower, initialDepositAmount)
 			borrower.Refresh()
-			fmt.Printf("Initial deposit of %s € placed:\n", strconv.Itoa(initialDepositAmount))
-			fmt.Printf("- Borrower #%s balance: %s €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(borrower.Balance))
+			fmt.Printf("Initial deposit of %1.2f € placed:\n", initialDepositAmount)
+			fmt.Printf("- Borrower #%s balance: %1.2f €\n", strconv.Itoa(int(borrower.ID)), borrower.Balance)
 		}
 
 		borrowers = append(borrowers, borrower)

@@ -26,7 +26,7 @@ func (c *Controller) GetBorrowerTableData() [][]string {
 		borrowerRow := []string{
 			strconv.Itoa(int(borrower.ID)),
 			borrower.Name,
-			fmt.Sprintf("%s €", strconv.Itoa(borrower.Balance)),
+			fmt.Sprintf("%1.2f €", borrower.Balance),
 		}
 
 		borrowerTableData = append(borrowerTableData, borrowerRow)
@@ -35,6 +35,6 @@ func (c *Controller) GetBorrowerTableData() [][]string {
 	return borrowerTableData
 }
 
-func (c *Controller) Create(name string, balance int) *models.Borrower {
+func (c *Controller) Create(name string, balance float64) *models.Borrower {
 	return models.CreateBorrower(name, balance)
 }

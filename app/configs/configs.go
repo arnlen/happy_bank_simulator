@@ -13,7 +13,7 @@ type general struct {
 
 type loan struct {
 	InitialQuantity      int     // How many loans should exist at the beginning at the simulation
-	DefaultAmount        int     // Default amount for a new loan
+	DefaultAmount        float64 // Default amount for a new loan
 	DefaultDuration      int     // Default duration for a new loan
 	SecurityDepositRate  float64 // For a given loan amout, how much % a borrower must stake
 	InsuredQuantityRatio float64 // How many loans are insured, in % of the total
@@ -21,18 +21,18 @@ type loan struct {
 }
 
 type borrower struct {
-	InitialBalance       int     // Initial balance
+	InitialBalance       float64 // Initial balance
 	BalanceLeverageRatio float64 // Ratio between the balance of the borrower and the amount he can borrow
 }
 
 type lender struct {
-	InitialBalance   int // Initial balance
-	MaxAmountPerLoan int // Maximum amout of money a lender can lend per loan
+	InitialBalance   float64 // Initial balance
+	MaxAmountPerLoan float64 // Maximum amout of money a lender can lend per loan
 }
 
 type insurer struct {
-	InitialBalance   int // Initial balance
-	MaxAmountPerLoan int // Maximum amout of money an insurer can insure per loan
+	InitialBalance   float64 // Initial balance
+	MaxAmountPerLoan float64 // Maximum amout of money an insurer can insure per loan
 }
 
 // Config intialization
@@ -49,7 +49,7 @@ var Loan = loan{
 	DefaultAmount:        5000,
 	DefaultDuration:      25,
 	SecurityDepositRate:  0.1,
-	InsuredQuantityRatio: 0.8,
+	InsuredQuantityRatio: 1,
 	FailureRate:          1,
 }
 

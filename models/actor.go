@@ -10,6 +10,6 @@ type ModelBase interface {
 
 type Actor interface {
 	ModelBase
-	UpdateBalance(amount int)
+	UpdateBalance(amount float64)
 	GetID() uint
 }

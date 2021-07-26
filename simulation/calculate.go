@@ -9,14 +9,14 @@ import (
 	"happy_bank_simulator/models"
 )
 
-func calculateLendersQuantityRequired(amount int) int {
+func calculateLendersQuantityRequired(amount float64) int {
 	maxAmountPerBorrower := configs.Lender.MaxAmountPerLoan
 	quantity := int(math.Ceil(float64(amount) / float64(maxAmountPerBorrower)))
 	fmt.Printf("%s lenders are required\n", strconv.Itoa(quantity))
 	return quantity
 }
 
-func calculateInsurersQuantityRequired(amount int) int {
+func calculateInsurersQuantityRequired(amount float64) int {
 	maxAmountPerLoan := configs.Insurer.MaxAmountPerLoan
 	return int(math.Ceil(float64(amount) / float64(maxAmountPerLoan)))
 }
@@ -24,10 +24,10 @@ func calculateInsurersQuantityRequired(amount int) int {
 func canThisBorrowerTakeThisLoan(borrower *models.Borrower, loan *models.Loan) bool {
 	loans := borrower.Loans
 	totalAmountBorrowed := borrower.GetTotalAmountBorrowed()
-	fmt.Printf("Borrower #%s has %s loans for a total of %s €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(len(loans)), strconv.Itoa(totalAmountBorrowed))
+	fmt.Printf("Borrower #%s has %s loans for a total of %1.2f €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(len(loans)), totalAmountBorrowed)
 
 	borrowerNetBalance := borrower.GetNetBalance()
-	fmt.Printf("Borrower #%s net balance is %s €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(borrowerNetBalance))
+	fmt.Printf("Borrower #%s net balance is %1.2f €\n", strconv.Itoa(int(borrower.ID)), borrowerNetBalance)
 
 	loanAmount := loan.Amount
 	balanceLeverageRatio := configs.Borrower.BalanceLeverageRatio

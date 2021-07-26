@@ -26,7 +26,7 @@ func (c *Controller) GetLenderTableData() [][]string {
 		lenderRow := []string{
 			strconv.Itoa(int(lender.ID)),
 			lender.Name,
-			fmt.Sprintf("%s €", strconv.Itoa(lender.Balance)),
+			fmt.Sprintf("%1.2f €", lender.Balance),
 		}
 
 		lenderTableData = append(lenderTableData, lenderRow)

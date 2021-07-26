@@ -70,9 +70,9 @@ func RenderEdit() *fyne.Container {
 
 	loanDefaultAmountLabel := widget.NewLabel("Montant des emprunts par défaut")
 	loanDefaultAmountEntry := widget.NewEntry()
-	loanDefaultAmountEntry.SetText(strconv.Itoa(configs.Loan.DefaultAmount))
+	loanDefaultAmountEntry.SetText(fmt.Sprintf("%1.2f", configs.Loan.DefaultAmount))
 	loanDefaultAmountEntry.OnChanged = func(value string) {
-		loanDefaultAmount, _ := strconv.Atoi(value)
+		loanDefaultAmount, _ := strconv.ParseFloat(value, 64)
 		configs.Loan.DefaultAmount = loanDefaultAmount
 		fmt.Println("configs.Loan.DefaultAmount updated to", value)
 	}
@@ -138,9 +138,9 @@ func RenderEdit() *fyne.Container {
 
 	borrowerInitialBalanceLabel := widget.NewLabel("Solde initial des emprunteurs")
 	borrowerInitialBalanceEntry := widget.NewEntry()
-	borrowerInitialBalanceEntry.SetText(strconv.Itoa(configs.Borrower.InitialBalance))
+	borrowerInitialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Borrower.InitialBalance))
 	borrowerInitialBalanceEntry.OnChanged = func(value string) {
-		borrowerInitialBalance, _ := strconv.Atoi(value)
+		borrowerInitialBalance, _ := strconv.ParseFloat(value, 64)
 		configs.Borrower.InitialBalance = borrowerInitialBalance
 		fmt.Println("configs.Borrower.InitialBalance updated to", value)
 	}
@@ -153,9 +153,9 @@ func RenderEdit() *fyne.Container {
 
 	lenderInitialBalanceLabel := widget.NewLabel("Solde initial des prêteurs")
 	lenderInitialBalanceEntry := widget.NewEntry()
-	lenderInitialBalanceEntry.SetText(strconv.Itoa(configs.Lender.InitialBalance))
+	lenderInitialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Lender.InitialBalance))
 	lenderInitialBalanceEntry.OnChanged = func(value string) {
-		lenderInitialBalance, _ := strconv.Atoi(value)
+		lenderInitialBalance, _ := strconv.ParseFloat(value, 64)
 		configs.Lender.InitialBalance = lenderInitialBalance
 		fmt.Println("configs.Lender.InitialBalance updated to", value)
 	}
@@ -164,9 +164,9 @@ func RenderEdit() *fyne.Container {
 
 	lenderMaxAmountPerLoanLabel := widget.NewLabel("Montant max par prêt par prêteur")
 	lenderMaxAmountPerLoanEntry := widget.NewEntry()
-	lenderMaxAmountPerLoanEntry.SetText(strconv.Itoa(configs.Lender.MaxAmountPerLoan))
+	lenderMaxAmountPerLoanEntry.SetText(fmt.Sprintf("%1.2f", configs.Lender.MaxAmountPerLoan))
 	lenderMaxAmountPerLoanEntry.OnChanged = func(value string) {
-		lenderMaxAmountPerLoan, _ := strconv.Atoi(value)
+		lenderMaxAmountPerLoan, _ := strconv.ParseFloat(value, 64)
 		configs.Lender.MaxAmountPerLoan = lenderMaxAmountPerLoan
 		fmt.Println("configs.Lender.MaxAmountPerLoan updated to", value)
 	}
@@ -177,9 +177,9 @@ func RenderEdit() *fyne.Container {
 
 	insurerInitialBalanceLabel := widget.NewLabel("Solde initial des assureurs")
 	insurerInitialBalanceEntry := widget.NewEntry()
-	insurerInitialBalanceEntry.SetText(strconv.Itoa(configs.Insurer.InitialBalance))
+	insurerInitialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Insurer.InitialBalance))
 	insurerInitialBalanceEntry.OnChanged = func(value string) {
-		insurerInitialBalance, _ := strconv.Atoi(value)
+		insurerInitialBalance, _ := strconv.ParseFloat(value, 64)
 		configs.Insurer.InitialBalance = insurerInitialBalance
 		fmt.Println("configs.Insurer.InitialBalance updated to", value)
 	}
@@ -188,9 +188,9 @@ func RenderEdit() *fyne.Container {
 
 	insurerMaxAmountPerLoanLabel := widget.NewLabel("Montant max par prêt par assureur")
 	insurerMaxAmountPerLoanEntry := widget.NewEntry()
-	insurerMaxAmountPerLoanEntry.SetText(strconv.Itoa(configs.Insurer.MaxAmountPerLoan))
+	insurerMaxAmountPerLoanEntry.SetText(fmt.Sprintf("%1.2f", configs.Insurer.MaxAmountPerLoan))
 	insurerMaxAmountPerLoanEntry.OnChanged = func(value string) {
-		insurerMaxAmountPerLoan, _ := strconv.Atoi(value)
+		insurerMaxAmountPerLoan, _ := strconv.ParseFloat(value, 64)
 		configs.Insurer.MaxAmountPerLoan = insurerMaxAmountPerLoan
 		fmt.Println("configs.Insurer.MaxAmountPerLoan updated to", value)
 	}

@@ -30,7 +30,7 @@ func (c *Controller) GetTransactionTableData() [][]string {
 			strconv.Itoa(int(transaction.ID)),
 			sender,
 			receiver,
-			fmt.Sprintf("%s €", strconv.Itoa(transaction.Amount)),
+			fmt.Sprintf("%1.2f €", transaction.Amount),
 		}
 
 		transactionTableData = append(transactionTableData, transactionRow)
