@@ -61,8 +61,8 @@ func Run() {
 		loans := models.ListActiveLoans()
 
 		if len(loans) == 0 {
-			fmt.Println("No active loan... 💤 ")
-			continue
+			fmt.Println("No more active loan... 💤 ")
+			break
 		}
 		fmt.Println(len(loans), "active loans")
 
@@ -77,7 +77,7 @@ func Run() {
 			loan.Print()
 
 			if currentDate.After(loanEndDate) {
-				fmt.Printf("Loan #%s is over.\n", strconv.Itoa(int(loan.ID)))
+				fmt.Printf("Loan #%s is over. ✅\n", strconv.Itoa(int(loan.ID)))
 				loan.IsActive = false
 				loan.Save()
 				continue
@@ -97,8 +97,8 @@ func Run() {
 					if loan.IsInsured {
 						fmt.Printf("- Loan #%s is insured by %s insurers. 🆘\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(quantityOfInsurers))
 
-						amountAssuredByInsurer := loan.Amount / float64(quantityOfInsurers)
-						amountToRefundByLender := amountAssuredByInsurer / float64(quantityOfLenders)
+						amountLeftToRefund := loan.Amount - loan.RefundedAmount
+						amountToRefundByLender := amountLeftToRefund / float64(quantityOfLenders)
 
 						for _, insurer := range loan.Insurers {
 							fmt.Printf("--- Insurer #%s will refund %s lenders.\n", strconv.Itoa(int(insurer.ID)), strconv.Itoa(quantityOfLenders))
@@ -123,6 +123,7 @@ func Run() {
 				loan.MonthlyCredit)
 			for _, lender := range loan.Lenders {
 				models.CreateTransaction(&borrower, lender, loan.MonthlyCredit).Print()
+				loan.Refund(loan.MonthlyCredit)
 			}
 
 			if loan.IsInsured {

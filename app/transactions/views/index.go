@@ -31,11 +31,8 @@ func RenderIndex() *fyne.Container {
 
 	table.SetColumnWidth(0, 50)
 	table.SetColumnWidth(1, 250)
-	table.SetColumnWidth(2, 100)
-
-	refreshButton := widget.NewButton("Refraichir", func() {
-		fmt.Println("Refresh not yet implemented!")
-	})
+	table.SetColumnWidth(2, 150)
+	table.SetColumnWidth(3, 150)
 
 	newButtonString := strings.Title(transactionsController.GetModelName(false))
 	newButton := widget.NewButtonWithIcon(newButtonString, theme.ContentAddIcon(), func() {
@@ -43,7 +40,7 @@ func RenderIndex() *fyne.Container {
 		RenderNew()
 	})
 
-	return container.NewBorder(refreshButton, newButton, nil, nil, table)
+	return container.NewBorder(nil, newButton, nil, nil, table)
 }
 
 func RenderNew() {

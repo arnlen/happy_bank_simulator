@@ -66,6 +66,17 @@ func RenderEdit() *fyne.Container {
 
 	// configs.Loan fields
 
+	initialLoanQuantityLabel := widget.NewLabel("Nombre d'emprunts au démarrage de la simulation")
+	initialLoanQuantityEntry := widget.NewEntry()
+	initialLoanQuantityEntry.SetText(strconv.Itoa(configs.Loan.InitialQuantity))
+	initialLoanQuantityEntry.OnChanged = func(value string) {
+		initialLoanQuantity, _ := strconv.Atoi(value)
+		configs.Loan.InitialQuantity = initialLoanQuantity
+		fmt.Println("configs.Loan.InitialQuantity updated to", value)
+	}
+	labels = append(labels, initialLoanQuantityLabel)
+	entries = append(entries, initialLoanQuantityEntry)
+
 	loanDefaultAmountLabel := widget.NewLabel("Montant des emprunts par défaut")
 	loanDefaultAmountEntry := widget.NewEntry()
 	loanDefaultAmountEntry.SetText(fmt.Sprintf("%1.2f", configs.Loan.DefaultAmount))
@@ -98,17 +109,6 @@ func RenderEdit() *fyne.Container {
 	}
 	labels = append(labels, securityDepositRateLabel)
 	entries = append(entries, securityDepositRateEntry)
-
-	initialLoanQuantityLabel := widget.NewLabel("Nombre d'emprunts au démarrage de la simulation")
-	initialLoanQuantityEntry := widget.NewEntry()
-	initialLoanQuantityEntry.SetText(strconv.Itoa(configs.Loan.InitialQuantity))
-	initialLoanQuantityEntry.OnChanged = func(value string) {
-		initialLoanQuantity, _ := strconv.Atoi(value)
-		configs.Loan.InitialQuantity = initialLoanQuantity
-		fmt.Println("configs.Loan.InitialQuantity updated to", value)
-	}
-	labels = append(labels, initialLoanQuantityLabel)
-	entries = append(entries, initialLoanQuantityEntry)
 
 	insuredQuantityRatioLabel := widget.NewLabel("Quantité d'emprunts assurés")
 	insuredQuantityRatioEntry := widget.NewEntry()
@@ -146,6 +146,16 @@ func RenderEdit() *fyne.Container {
 	entries = append(entries, borrowerInitialBalanceEntry)
 
 	// TODO: add fields for BalanceLeverageRatio
+	balanceLeverageRatioLabel := widget.NewLabel("Ratio montant prêté sur balance")
+	balanceLeverageRatioEntry := widget.NewEntry()
+	balanceLeverageRatioEntry.SetText(fmt.Sprintf("%1.2f", configs.Borrower.BalanceLeverageRatio))
+	balanceLeverageRatioEntry.OnChanged = func(value string) {
+		balanceLeverageRatio, _ := strconv.ParseFloat(value, 64)
+		configs.Borrower.BalanceLeverageRatio = balanceLeverageRatio
+		fmt.Println("configs.Borrower.BalanceLeverageRatio updated to", value)
+	}
+	labels = append(labels, balanceLeverageRatioLabel)
+	entries = append(entries, balanceLeverageRatioEntry)
 
 	// configs.Lender fields
 

@@ -21,6 +21,11 @@ func calculateInsurersQuantityRequired(amount float64) int {
 	return int(math.Ceil(float64(amount) / float64(maxAmountPerLoan)))
 }
 
+func calculateAmountToLendForLender(amount float64) float64 {
+	lenderQuantity := calculateLendersQuantityRequired(amount)
+	return amount / float64(lenderQuantity)
+}
+
 func canThisBorrowerTakeThisLoan(borrower *models.Borrower, loan *models.Loan) bool {
 	loans := borrower.Loans
 	totalAmountBorrowed := borrower.GetTotalAmountBorrowed()

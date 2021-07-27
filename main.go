@@ -7,10 +7,6 @@ import (
 	"happy_bank_simulator/simulation"
 )
 
-// TODO
-//
-// Remove duplicated methods in models
-
 func main() {
 	database.InitDB()
 	databaseHelpers.MigrateDB()

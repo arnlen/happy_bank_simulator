@@ -47,7 +47,7 @@ var General = general{
 var Loan = loan{
 	InitialQuantity:      3,
 	DefaultAmount:        5000,
-	DefaultDuration:      25,
+	DefaultDuration:      24,
 	SecurityDepositRate:  0.1,
 	InsuredQuantityRatio: 1,
 	FailureRate:          1,

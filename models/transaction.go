@@ -74,7 +74,7 @@ func NewDepositTransaction(borrower Borrower, amount float64) *Transaction {
 	return &Transaction{
 		SenderID:     int(borrower.GetID()),
 		SenderType:   borrower.ModelName(),
-		ReceiverType: "",
+		ReceiverType: "deposit",
 		ReceiverID:   0,
 		Amount:       amount,
 		isDeposit:    true,
@@ -92,7 +92,23 @@ func (instance *Transaction) Create() *gorm.DB {
 }
 
 func (instance *Transaction) Print() {
-	sender := fmt.Sprintf("%s #%s", strings.Title(instance.SenderType), strconv.Itoa(int(instance.SenderID)))
-	receiver := fmt.Sprintf("%s #%s", strings.Title(instance.ReceiverType), strconv.Itoa(int(instance.ReceiverID)))
-	fmt.Printf("🔁 Transaction #%s: %s => %s of %1.2f €\n", strconv.Itoa(int(instance.ID)), sender, receiver, instance.Amount)
+	sender := fmt.Sprintf("%s #%s",
+		strings.Title(instance.SenderType),
+		strconv.Itoa(int(instance.SenderID)),
+	)
+
+	receiver := "DEPOSIT ADDRESS"
+
+	if instance.ReceiverType != "deposit" {
+		receiver = fmt.Sprintf("%s #%s",
+			strings.Title(instance.ReceiverType),
+			strconv.Itoa(int(instance.ReceiverID)),
+		)
+	}
+
+	fmt.Printf("🔁 Transaction #%s: [%s] == %1.2f € ==> [%s]\n",
+		strconv.Itoa(int(instance.ID)),
+		sender,
+		instance.Amount,
+		receiver)
 }

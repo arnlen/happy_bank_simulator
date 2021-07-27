@@ -20,12 +20,13 @@ func (c *Controller) GetInsurerTableData() [][]string {
 	insurers := models.ListInsurers()
 
 	insurerTableData := [][]string{
-		{"ID", "Name", "Balance"}}
+		{"ID", "Name", "Initial Balance", "Balance"}}
 
 	for _, insurer := range insurers {
 		insurerRow := []string{
 			strconv.Itoa(int(insurer.ID)),
 			insurer.Name,
+			fmt.Sprintf("%1.2f €", insurer.InitialBalance),
 			fmt.Sprintf("%1.2f €", insurer.Balance),
 		}
 

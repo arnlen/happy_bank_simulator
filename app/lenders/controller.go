@@ -20,12 +20,13 @@ func (c *Controller) GetLenderTableData() [][]string {
 	lenders := models.ListLenders()
 
 	lenderTableData := [][]string{
-		{"ID", "Name", "Balance"}}
+		{"ID", "Name", "Initial Balance", "Balance"}}
 
 	for _, lender := range lenders {
 		lenderRow := []string{
 			strconv.Itoa(int(lender.ID)),
 			lender.Name,
+			fmt.Sprintf("%1.2f €", lender.InitialBalance),
 			fmt.Sprintf("%1.2f €", lender.Balance),
 		}
 

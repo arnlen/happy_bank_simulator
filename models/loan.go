@@ -28,6 +28,7 @@ type Loan struct {
 	EndDate          string
 	Duration         int
 	Amount           float64
+	RefundedAmount   float64
 	InitialDeposit   float64
 	CreditRate       float64
 	InsuranceRate    float64
@@ -78,9 +79,12 @@ func (instance *Loan) SetRandomFailureDate() int {
 
 func (instance *Loan) Print() {
 	fmt.Printf("\n---[ LOAN #%s ]---\n", strconv.Itoa(int(instance.ID)))
-	fmt.Println("- Start date:", instance.StartDate)
-	fmt.Println("- End date:", instance.EndDate)
-	fmt.Println("- Amount:", instance.Amount, "€")
+	fmt.Printf("- Duration: %s months, from %s to %s\n", strconv.Itoa(instance.Duration), instance.StartDate, instance.EndDate)
+	fmt.Printf("- Amount: %1.2f € \n", instance.Amount)
+	fmt.Printf("- Refunded amount: %1.2f €\n", instance.RefundedAmount)
+	fmt.Printf("- Credit cost: %1.2f € (%1.2f %%)\n", instance.CreditCost(), instance.CreditRate*100)
+	fmt.Printf("- Insurance cost: %1.2f € (%1.2f %%)\n", instance.InsuranceCost(), instance.InsuranceRate*100)
+	fmt.Printf("- Loan cost: %1.2f €\n", instance.LoanCost())
 
 	willFailText := "No"
 	if instance.WillFailOn != "" {
@@ -92,23 +96,40 @@ func (instance *Loan) Print() {
 	if instance.Borrower.Name != "" {
 		name := instance.Borrower.Name
 		id := instance.BorrowerID
-		borrowerName = fmt.Sprintf("%s (#%s)", name, strconv.Itoa(int(id)))
+		borrowerName = fmt.Sprintf("%s (#%s) 💰 %1.2f €", name, strconv.Itoa(int(id)), instance.Borrower.Balance)
 	}
 	fmt.Printf("- Borrower: %s\n", borrowerName)
 
 	fmt.Printf("- %s lenders\n", strconv.Itoa(len(instance.Lenders)))
 	for _, lender := range instance.Lenders {
-		fmt.Printf("--- %s (#%s)\n", lender.Name, strconv.Itoa(int(lender.ID)))
+		fmt.Printf("--- %s (#%s) 💰 %1.2f €\n", lender.Name, strconv.Itoa(int(lender.ID)), lender.Balance)
 	}
 
 	fmt.Println("- Is insured?", instance.IsInsured)
 	if instance.IsInsured {
 		fmt.Printf("- %s insurers\n", strconv.Itoa(len(instance.Insurers)))
 		for _, insurer := range instance.Insurers {
-			fmt.Printf("--- %s (#%s)\n", insurer.Name, strconv.Itoa(int(insurer.ID)))
+			fmt.Printf("--- %s (#%s) 💰 %1.2f €\n", insurer.Name, strconv.Itoa(int(insurer.ID)), insurer.Balance)
 		}
 	}
 	fmt.Printf("\n")
+}
+
+func (instance *Loan) Refund(amount float64) {
+	instance.RefundedAmount += amount
+	instance.Save()
+}
+
+func (instance *Loan) CreditCost() float64 {
+	return (instance.MonthlyCredit*float64(instance.Duration) - instance.Amount)
+}
+
+func (instance *Loan) InsuranceCost() float64 {
+	return instance.MonthlyInsurance * float64(instance.Duration)
+}
+
+func (instance *Loan) LoanCost() float64 {
+	return instance.CreditCost() + instance.InsuranceCost()
 }
 
 // ------- Package methods -------
@@ -158,7 +179,7 @@ func CreateEmptyLoan() *Loan {
 }
 
 func CalculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount float64) float64 {
-	return gofin.PMT(interestCreditRate, float64(duration), float64(-amount), 0, 0)
+	return gofin.PMT(interestCreditRate/12, float64(duration), float64(-amount), 0, 0)
 }
 
 func CalculateMonthlyInsurancePayment(interestInsuranceRate float64, amount float64) float64 {
