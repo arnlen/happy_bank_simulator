@@ -17,9 +17,10 @@ var _ Actor = (*Borrower)(nil)
 
 type Borrower struct {
 	gorm.Model
-	Name    string
-	Loans   []Loan
-	Balance float64
+	Name           string
+	Loans          []Loan
+	InitialBalance float64
+	Balance        float64
 }
 
 // ------- Instance methods -------
@@ -90,9 +91,10 @@ func NewBorrower(name string, balance float64) *Borrower {
 
 func NewDefaultBorrower() *Borrower {
 	return &Borrower{
-		Name:    faker.Name().Name(),
-		Loans:   []Loan{},
-		Balance: configs.Borrower.InitialBalance,
+		Name:           faker.Name().Name(),
+		Loans:          []Loan{},
+		InitialBalance: configs.Borrower.InitialBalance,
+		Balance:        configs.Borrower.InitialBalance,
 	}
 }
 

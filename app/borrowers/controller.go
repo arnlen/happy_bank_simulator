@@ -20,12 +20,13 @@ func (c *Controller) GetBorrowerTableData() [][]string {
 	borrowers := models.ListBorrowers()
 
 	borrowerTableData := [][]string{
-		{"ID", "Name", "Balance"}}
+		{"ID", "Name", "Initial Balance", "Balance"}}
 
 	for _, borrower := range borrowers {
 		borrowerRow := []string{
 			strconv.Itoa(int(borrower.ID)),
 			borrower.Name,
+			fmt.Sprintf("%1.2f €", borrower.InitialBalance),
 			fmt.Sprintf("%1.2f €", borrower.Balance),
 		}
 

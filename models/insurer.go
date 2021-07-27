@@ -17,9 +17,10 @@ var _ Actor = (*Insurer)(nil)
 
 type Insurer struct {
 	gorm.Model
-	Name    string
-	Loans   []*Loan `gorm:"many2many:loan_insurers;"`
-	Balance float64
+	Name           string
+	Loans          []*Loan `gorm:"many2many:loan_insurers;"`
+	InitialBalance float64
+	Balance        float64
 }
 
 // ------- Instance methods -------
@@ -99,17 +100,19 @@ func ListInsurersWithLoanOtherThan(insurers []*Insurer, loan *Loan) []*Insurer {
 
 func NewInsurer(name string, balance float64) *Insurer {
 	return &Insurer{
-		Name:    name,
-		Loans:   []*Loan{},
-		Balance: balance,
+		Name:           name,
+		Loans:          []*Loan{},
+		InitialBalance: balance,
+		Balance:        balance,
 	}
 }
 
 func NewDefaultInsurer() *Insurer {
 	return &Insurer{
-		Name:    faker.Name().Name(),
-		Loans:   []*Loan{},
-		Balance: configs.Insurer.InitialBalance,
+		Name:           faker.Name().Name(),
+		Loans:          []*Loan{},
+		InitialBalance: configs.Insurer.InitialBalance,
+		Balance:        configs.Insurer.InitialBalance,
 	}
 }
 

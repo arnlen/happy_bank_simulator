@@ -18,7 +18,7 @@ import (
 var borrowersController = borrowers.Controller{}
 
 func RenderIndex() *fyne.Container {
-	borrowerTableData := borrowersController.GetBorrowerTableData()
+	borrowerTableData := updateTableData()
 
 	table := widget.NewTable(
 		func() (int, int) {
@@ -35,10 +35,7 @@ func RenderIndex() *fyne.Container {
 	table.SetColumnWidth(0, 50)
 	table.SetColumnWidth(1, 250)
 	table.SetColumnWidth(2, 100)
-
-	refreshButton := widget.NewButton("Refraichir", func() {
-		fmt.Println("Refresh not yet implemented!")
-	})
+	table.SetColumnWidth(3, 100)
 
 	newButtonString := strings.Title(borrowersController.GetModelName(false))
 	newButton := widget.NewButtonWithIcon(newButtonString, theme.ContentAddIcon(), func() {
@@ -46,7 +43,11 @@ func RenderIndex() *fyne.Container {
 		RenderNew()
 	})
 
-	return container.NewBorder(refreshButton, newButton, nil, nil, table)
+	return container.NewBorder(nil, newButton, nil, nil, table)
+}
+
+func updateTableData() [][]string {
+	return borrowersController.GetBorrowerTableData()
 }
 
 func RenderNew() {

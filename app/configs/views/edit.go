@@ -5,11 +5,9 @@ import (
 	"strconv"
 
 	"happy_bank_simulator/app/configs"
-	"happy_bank_simulator/simulation"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -209,11 +207,6 @@ func RenderEdit() *fyne.Container {
 		vBox.Add(hbox)
 	}
 
-	runButton := widget.NewButtonWithIcon("Run simulation", theme.ContentAddIcon(), func() {
-		simulation.Prepare()
-		simulation.Run()
-	})
-
-	masterContainer := container.NewBorder(nil, runButton, nil, nil, vBox)
+	masterContainer := container.NewBorder(nil, nil, nil, nil, vBox)
 	return masterContainer
 }
