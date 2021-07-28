@@ -140,4 +140,6 @@ func Run() {
 
 		fmt.Printf("\n--------- End of Month #%s - %s ---------\n", strconv.Itoa(monthIndex+1), helpers.TimeDateToString(currentDate))
 	}
+
+	LineExamples{}.Examples()
 }
