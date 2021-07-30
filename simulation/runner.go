@@ -54,9 +54,11 @@ func Run() {
 	fmt.Println("\nRunning a new simulation! 🚀")
 	simulationStartDate := helpers.ParseStringToDate(configs.General.StartDate)
 	simulationDuration := configs.General.Duration
+	// echartsManager := EchartsManager{}
 
 	for monthIndex := 0; monthIndex < simulationDuration-1; monthIndex++ {
 		currentDate := helpers.AddMonthsToDate(simulationStartDate, monthIndex)
+
 		fmt.Printf("\n--------- Start of Month #%s - %s 📅 ---------\n", strconv.Itoa(monthIndex+1), helpers.TimeDateToString(currentDate))
 		loans := models.ListActiveLoans()
 
@@ -73,6 +75,14 @@ func Run() {
 			quantityOfLenders := len(lenders)
 			insurers := loan.Insurers
 			quantityOfInsurers := len(insurers)
+
+			// Check is this actor already have a chart
+			// echartsManager.findOrCreateChartForActor(borrower)
+
+			// actorChart := ActorChart{}
+			// actorChart.NewChartForActor(&borrower)
+			// actorChart.AddItem(currentDate.String(), borrower.Balance)
+			// echartsManager.AddChart(&actorChart)
 
 			loan.Print()
 
@@ -92,7 +102,7 @@ func Run() {
 					loan.Save()
 
 					borrower.UpdateBalance(0)
-					fmt.Printf("- Borrower #%s's balance: 0 €.\n", strconv.Itoa(int(borrower.ID)))
+					fmt.Printf("- Borrower #%s's balance: %1.2f €.\n", strconv.Itoa(int(borrower.ID)), borrower.Balance)
 
 					if loan.IsInsured {
 						fmt.Printf("- Loan #%s is insured by %s insurers. 🆘\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(quantityOfInsurers))
@@ -141,5 +151,5 @@ func Run() {
 		fmt.Printf("\n--------- End of Month #%s - %s ---------\n", strconv.Itoa(monthIndex+1), helpers.TimeDateToString(currentDate))
 	}
 
-	LineExamples{}.Examples()
+	// echartsManager.DrawCharts()
 }

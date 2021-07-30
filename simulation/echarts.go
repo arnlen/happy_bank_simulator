@@ -1,60 +1,112 @@
 package simulation
 
 import (
+	"fmt"
+	"happy_bank_simulator/models"
 	"io"
-	"math/rand"
 	"os"
+	"strconv"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 )
 
-var (
-	itemCntLine = 6
-	fruits      = []string{"Apple", "Banana", "Peach ", "Lemon", "Pear", "Cherry"}
-)
+type ActorChart struct {
+	actorName string
+	items     []opts.LineData
+	months    []string
+	chart     *charts.Line
+}
 
-func generateLineItems() []opts.LineData {
-	items := make([]opts.LineData, 0)
-	for i := 0; i < itemCntLine; i++ {
-		items = append(items, opts.LineData{Value: rand.Intn(300)})
+func (instance *ActorChart) AddItem(month string, itemValue float64) {
+	instance.months = append(instance.months, month)
+	fmt.Println("📈 New month", month, "added to chart", instance.actorName)
+	instance.items = append(instance.items, opts.LineData{Value: itemValue})
+	fmt.Println("📈 New item", itemValue, "added to chart", instance.actorName)
+}
+
+func (instance *ActorChart) Finalize() {
+	instance.chart.SetXAxis(instance.months).AddSeries("Category A", instance.items)
+	fmt.Println("📈 ActorChar", instance.actorName, "finilized")
+}
+
+// ------
+
+type EchartsManager struct {
+	page        *components.Page
+	actorCharts []*ActorChart
+}
+
+func (instance *EchartsManager) AddChartToList(chart *ActorChart) {
+	instance.actorCharts = append(instance.actorCharts, chart)
+}
+
+func (instance *EchartsManager) ListCharts() []*ActorChart {
+	return instance.actorCharts
+}
+
+func (instance *EchartsManager) DrawChartsFromList() {
+	for _, actorChart := range instance.actorCharts {
+		instance.page.AddCharts(actorChart.chart)
 	}
-	return items
-}
-
-func lineSmooth() *charts.Line {
-	line := charts.NewLine()
-	line.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{
-			Title:    "Smooth Style mixed ((title and label options)",
-			Subtitle: "go-echarts is an awesome chart library written in Golang",
-			Link:     "https://github.com/go-echarts/go-echarts",
-		}),
-	)
-
-	line.SetXAxis(fruits).AddSeries("Category A", generateLineItems()).
-		SetSeriesOptions(charts.WithLineChartOpts(
-			opts.LineChart{
-				Smooth: true,
-			}),
-			charts.WithLabelOpts(opts.Label{
-				Show: true,
-			}),
-		)
-	return line
-}
-
-type LineExamples struct{}
-
-func (LineExamples) Examples() {
-	page := components.NewPage()
-	page.AddCharts(
-		lineSmooth(),
-	)
 	f, err := os.Create("tmp/line.html")
 	if err != nil {
 		panic(err)
 	}
-	page.Render(io.MultiWriter(f))
+	instance.page.Render(io.MultiWriter(f))
+}
+
+func (instance *EchartsManager) findOrCreateChartForActor(actor *models.Actor) *ActorChart {
+	chart := instance.doesThisActorAlreadyHaveChart(actor)
+
+	if chart != nil {
+		return chart
+	}
+
+	return NewChartForActor(*actor)
+}
+
+func (instance *EchartsManager) doesThisActorAlreadyHaveChart(actor *models.Actor) *ActorChart {
+	actorName := generateActorNameFor(*actor)
+	for _, chart := range instance.ListCharts() {
+		if chart.actorName == actorName {
+			return chart
+		}
+	}
+	return nil
+}
+
+// ---
+
+func NewChartForActor(actor models.Actor) *ActorChart {
+	actorChart := ActorChart{}
+	actorName := generateActorNameFor(actor)
+	actorChart.actorName = actorName
+
+	lineSmoothChart := charts.NewLine()
+	lineSmoothChart.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title:    actorName,
+			Subtitle: "Balance at the end of simulation",
+		}),
+	)
+
+	lineSmoothChart.SetSeriesOptions(charts.WithLineChartOpts(
+		opts.LineChart{
+			Smooth: true,
+		}),
+		charts.WithLabelOpts(opts.Label{
+			Show: true,
+		}),
+	)
+
+	actorChart.chart = lineSmoothChart
+	fmt.Println("New ActorChart created for", actorName)
+
+	return &actorChart
+}
+
+func generateActorNameFor(actor models.Actor) string {
+	return fmt.Sprintf("%s#%s", actor.ModelName(), strconv.Itoa(int(actor.GetID())))
 }
