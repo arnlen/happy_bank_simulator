@@ -35,6 +35,20 @@ type insurer struct {
 	MaxAmountPerLoan float64 // Maximum amout of money an insurer can insure per loan
 }
 
+type actor struct {
+	Borrower       string
+	Lender         string
+	Insurer        string
+	InitialBalance float64 // Initial balance
+}
+
+var Actor = actor{
+	Borrower:       "borrower",
+	Lender:         "lender",
+	Insurer:        "insurer",
+	InitialBalance: 5000,
+}
+
 // Config intialization
 
 var General = general{

@@ -12,8 +12,8 @@ import (
 )
 
 // Declare conformity with interfaces
-var _ ModelBase = (*Lender)(nil)
-var _ Actor = (*Lender)(nil)
+// var _ ModelBase = (*Lender)(nil)
+// var _ Actor = (*Lender)(nil)
 
 type Lender struct {
 	gorm.Model
