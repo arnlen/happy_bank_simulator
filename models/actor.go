@@ -10,14 +10,7 @@ import (
 	"syreclabs.com/go/faker"
 )
 
-type ModelBase interface {
-	ModelName() string
-	Refresh()
-	Save()
-}
-
 type Actor struct {
-	ModelBase
 	gorm.Model
 	Name           string
 	Loans          []*Loan `gorm:"many2many:loan_actors;"`
@@ -87,10 +80,51 @@ func FindActor(actorType string, id int) *Actor {
 	return &actor
 }
 
-func ListActors(actorType string) []Actor {
-	var actors []Actor
+func ListActors(actorType string) []*Actor {
+	var actors []*Actor
 	database.GetDB().Preload(clause.Associations).Find(&actors)
 	return actors
+}
+
+// TODO: Next here: convert this copy/pasted methods from Actor to Actor
+
+func ListActorsWithPositiveBalance(actorType string) []*Actor {
+	actors := ListActors(actorType)
+	var actorsWithPositiveBalance []*Actor
+	for _, actor := range actors {
+		if actor.Balance > 0 {
+			actorsWithPositiveBalance = append(actorsWithPositiveBalance, actor)
+		}
+	}
+	return actorsWithPositiveBalance
+}
+
+func ListActorsWithoutLoan(actorType string) []*Actor {
+	actors := ListActors(actorType)
+	var availableActorsWithoutLoan []*Actor
+	for _, actor := range actors {
+		if len(actor.Loans) == 0 {
+			availableActorsWithoutLoan = append(availableActorsWithoutLoan, actor)
+		}
+	}
+	return availableActorsWithoutLoan
+}
+
+// Duplicate with Insurer: same method
+func ListActorsWithLoanOtherThan(actorType string, loan *Loan) []*Actor {
+	actors := ListActorsWithoutLoan(actorType)
+	var availableActorsWithLoan []*Actor
+
+	for _, actor := range actors {
+		if len(actor.Loans) != 0 {
+			for _, actorLoan := range actor.Loans {
+				if actorLoan.ID != loan.ID && !isActorAlreadyInSlice(*actor, actors) {
+					availableActorsWithLoan = append(availableActorsWithLoan, actor)
+				}
+			}
+		}
+	}
+	return availableActorsWithLoan
 }
 
 func NewActor(actorType string, name string, balance float64) *Actor {
@@ -98,6 +132,7 @@ func NewActor(actorType string, name string, balance float64) *Actor {
 		Name:    name,
 		Loans:   []*Loan{},
 		Balance: balance,
+		Type:    actorType,
 	}
 }
 
@@ -126,4 +161,14 @@ func CreateActor(actorType string, name string, balance float64) *Actor {
 	}
 
 	return actor
+}
+
+func isActorAlreadyInSlice(newActor Actor, lenders []*Actor) bool {
+	for _, lender := range lenders {
+		if lender.ID == newActor.ID {
+			return true
+		}
+	}
+
+	return false
 }
