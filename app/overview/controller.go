@@ -17,9 +17,9 @@ type Controller struct{}
 func (c *Controller) GetCounters() []int {
 	db := database.GetDB()
 
-	var borrowers []models.Borrower
-	var lenders []models.Lender
-	var insurers []models.Insurer
+	var borrowers []models.Actor
+	var lenders []models.Actor
+	var insurers []models.Actor
 	var loans []models.Loan
 
 	db.Preload(clause.Associations).Find(&borrowers)

@@ -108,5 +108,5 @@ func NewChartForActor(actor models.Actor) *ActorChart {
 }
 
 func generateActorNameFor(actor models.Actor) string {
-	return fmt.Sprintf("%s#%s", actor.ModelName(), strconv.Itoa(int(actor.GetID())))
+	return fmt.Sprintf("%s#%s", actor.Type, strconv.Itoa(int(actor.GetID())))
 }

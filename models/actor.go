@@ -163,9 +163,9 @@ func CreateActor(actorType string, name string, balance float64) *Actor {
 	return actor
 }
 
-func isActorAlreadyInSlice(newActor Actor, lenders []*Actor) bool {
-	for _, lender := range lenders {
-		if lender.ID == newActor.ID {
+func isActorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {
+	for _, actor := range sliceOfActors {
+		if actor.ID == newActor.ID {
 			return true
 		}
 	}

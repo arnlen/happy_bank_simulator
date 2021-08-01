@@ -9,14 +9,14 @@ import (
 )
 
 func setupLendersForLoan(loan *models.Loan) {
-	var availableLenders []*models.Lender
+	var availableLenders []*models.Actor
 	defaultLoanAmount := configs.Loan.DefaultAmount
 
 	lendersQuantityRequired := calculateLendersQuantityRequired(defaultLoanAmount)
-	lendersWithPositiveBalance := models.ListLendersWithPositiveBalance()
+	lendersWithPositiveBalance := models.ListActorsWithPositiveBalance(configs.Actor.Lender)
 	fmt.Printf("%s lenders with a positive balance\n", strconv.Itoa(len(lendersWithPositiveBalance)))
 
-	lendersWithoutLoan := models.ListLendersWithoutLoan(lendersWithPositiveBalance)
+	lendersWithoutLoan := models.ListActorsWithoutLoan(configs.Actor.Lender)
 	fmt.Printf("%s lenders without any loans are available\n", strconv.Itoa(len(lendersWithoutLoan)))
 	availableLenders = append(availableLenders, lendersWithoutLoan...)
 
@@ -25,7 +25,7 @@ func setupLendersForLoan(loan *models.Loan) {
 		fmt.Printf("Not enough available lenders: missing %s lenders\n", strconv.Itoa(missingLendersQuantity))
 		fmt.Println("Trying to find available lenders inside lenders with already at least 1 loan")
 
-		lendersWithLoan := models.ListLendersWithLoanOtherThan(lendersWithPositiveBalance, loan)
+		lendersWithLoan := models.ListActorsWithLoanOtherThan(configs.Actor.Lender, loan)
 		fmt.Printf("%s lenders wit loans different than the current one are available\n", strconv.Itoa(len(lendersWithLoan)))
 		availableLenders = append(availableLenders, lendersWithLoan...)
 	}
@@ -44,14 +44,14 @@ func setupLendersForLoan(loan *models.Loan) {
 }
 
 func setupInsurersForLoan(loan *models.Loan) {
-	var availableInsurers []*models.Insurer
+	var availableInsurers []*models.Actor
 	defaultLoanAmount := configs.Loan.DefaultAmount
 
 	insurersQuantityRequired := calculateInsurersQuantityRequired(defaultLoanAmount)
-	insurersWithPositiveBalance := models.ListInsurersWithPositiveBalance()
+	insurersWithPositiveBalance := models.ListActorsWithPositiveBalance(configs.Actor.Insurer)
 	fmt.Printf("%s insurers with a positive balance\n", strconv.Itoa(len(insurersWithPositiveBalance)))
 
-	insurersWithoutLoan := models.ListInsurersWithoutLoan(insurersWithPositiveBalance)
+	insurersWithoutLoan := models.ListActorsWithoutLoan(configs.Actor.Insurer)
 	fmt.Printf("%s insurers without any loans are available\n", strconv.Itoa(len(insurersWithoutLoan)))
 	availableInsurers = append(availableInsurers, insurersWithoutLoan...)
 
@@ -60,7 +60,7 @@ func setupInsurersForLoan(loan *models.Loan) {
 		fmt.Printf("Not enough available Insurers: missing %s Insurers\n", strconv.Itoa(missingInsurersQuantity))
 		fmt.Println("Trying to find available Insurers inside Insurers with already at least 1 loan")
 
-		insurersWithLoan := models.ListInsurersWithLoanOtherThan(insurersWithPositiveBalance, loan)
+		insurersWithLoan := models.ListActorsWithLoanOtherThan(configs.Actor.Insurer, loan)
 		fmt.Printf("%s insurers with loans different than the current one are available\n", strconv.Itoa(len(insurersWithLoan)))
 		availableInsurers = append(availableInsurers, insurersWithLoan...)
 	}

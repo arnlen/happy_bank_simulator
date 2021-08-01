@@ -2,6 +2,7 @@ package insurers
 
 import (
 	"fmt"
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/models"
 	"strconv"
 )
@@ -9,15 +10,15 @@ import (
 type Controller struct{}
 
 func (c *Controller) GetModelName(pluralize bool) string {
-	insurerModel := models.Insurer{}
+	insurerModel := models.Actor{}
 	if pluralize {
-		return fmt.Sprintf("%ss", insurerModel.ModelName())
+		return fmt.Sprintf("%ss", insurerModel.Type)
 	}
-	return insurerModel.ModelName()
+	return insurerModel.Type
 }
 
 func (c *Controller) GetInsurerTableData() [][]string {
-	insurers := models.ListInsurers()
+	insurers := models.ListActors(configs.Actor.Insurer)
 
 	insurerTableData := [][]string{
 		{"ID", "Name", "Initial Balance", "Balance"}}

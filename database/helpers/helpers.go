@@ -8,9 +8,7 @@ import (
 )
 
 var modelList = []interface{}{
-	&models.Borrower{},
-	&models.Insurer{},
-	&models.Lender{},
+	&models.Actor{},
 	&models.Loan{},
 	&models.Transaction{},
 }

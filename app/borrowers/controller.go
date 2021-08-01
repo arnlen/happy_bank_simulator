@@ -2,6 +2,7 @@ package borrowers
 
 import (
 	"fmt"
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/models"
 	"strconv"
 )
@@ -9,15 +10,15 @@ import (
 type Controller struct{}
 
 func (c *Controller) GetModelName(pluralize bool) string {
-	borrowerModel := models.Borrower{}
+	borrowerModel := models.Actor{}
 	if pluralize {
-		return fmt.Sprintf("%ss", borrowerModel.ModelName())
+		return fmt.Sprintf("%ss", borrowerModel.Type)
 	}
-	return borrowerModel.ModelName()
+	return borrowerModel.Type
 }
 
 func (c *Controller) GetBorrowerTableData() [][]string {
-	borrowers := models.ListBorrowers()
+	borrowers := models.ListActors(configs.Actor.Borrower)
 
 	borrowerTableData := [][]string{
 		{"ID", "Name", "Initial Balance", "Balance"}}
@@ -36,6 +37,6 @@ func (c *Controller) GetBorrowerTableData() [][]string {
 	return borrowerTableData
 }
 
-func (c *Controller) Create(name string, balance float64) *models.Borrower {
-	return models.CreateBorrower(name, balance)
+func (c *Controller) Create(name string, balance float64) *models.Actor {
+	return models.CreateActor(configs.Actor.Borrower, name, balance)
 }

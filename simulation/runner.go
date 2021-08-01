@@ -114,7 +114,7 @@ func Run() {
 							fmt.Printf("--- Insurer #%s will refund %s lenders.\n", strconv.Itoa(int(insurer.ID)), strconv.Itoa(quantityOfLenders))
 
 							for _, lender := range lenders {
-								models.CreateTransaction(insurer, lender, amountToRefundByLender).Print()
+								models.CreateTransaction(*insurer, *lender, amountToRefundByLender).Print()
 							}
 						}
 						continue
@@ -132,7 +132,7 @@ func Run() {
 				strconv.Itoa(int(borrower.ID)),
 				loan.MonthlyCredit)
 			for _, lender := range loan.Lenders {
-				models.CreateTransaction(&borrower, lender, loan.MonthlyCredit).Print()
+				models.CreateTransaction(borrower, *lender, loan.MonthlyCredit).Print()
 				loan.Refund(loan.MonthlyCredit)
 			}
 
@@ -143,7 +143,7 @@ func Run() {
 					strconv.Itoa(int(borrower.ID)),
 					loan.MonthlyInsurance)
 				for _, insurer := range loan.Insurers {
-					models.CreateTransaction(&borrower, insurer, loan.MonthlyInsurance).Print()
+					models.CreateTransaction(borrower, *insurer, loan.MonthlyInsurance).Print()
 				}
 			}
 		}

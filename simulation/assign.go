@@ -7,7 +7,7 @@ import (
 	"happy_bank_simulator/models"
 )
 
-func assignBorrowerToLoan(borrower *models.Borrower, loan *models.Loan) {
+func assignBorrowerToLoan(borrower *models.Actor, loan *models.Loan) {
 	loan.Borrower = *borrower
 	loan.Save()
 	borrower.Refresh()
@@ -15,14 +15,14 @@ func assignBorrowerToLoan(borrower *models.Borrower, loan *models.Loan) {
 	fmt.Printf("Borrower #%s has now %s loans\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(len(borrower.Loans))))
 }
 
-func assignLendersToLoan(lenders []*models.Lender, loan *models.Loan) {
+func assignLendersToLoan(lenders []*models.Actor, loan *models.Loan) {
 	totalAmountLent := 0.0
 	amountToLend := calculateAmountToLendForLender(loan.Amount)
 
 	fmt.Printf("Assigning %s lenders to loan #%s\n", strconv.Itoa(len(lenders)), strconv.Itoa(int(loan.ID)))
 	for _, availableLender := range lenders {
 		totalAmountLent += amountToLend
-		models.CreateTransaction(availableLender, &loan.Borrower, amountToLend).Print()
+		models.CreateTransaction(*availableLender, loan.Borrower, amountToLend).Print()
 		loan.AddLender(availableLender)
 		fmt.Printf("- Lender #%s assigned. InitialBalance: %1.2f | Balance: %1.2f\n", strconv.Itoa(int(availableLender.ID)), availableLender.InitialBalance, availableLender.Balance)
 	}
@@ -34,7 +34,7 @@ func assignLendersToLoan(lenders []*models.Lender, loan *models.Loan) {
 	)
 }
 
-func assignInsurersToLoan(insurers []*models.Insurer, loan *models.Loan) {
+func assignInsurersToLoan(insurers []*models.Actor, loan *models.Loan) {
 	fmt.Printf("Assigning %s insurers to loan #%s\n", strconv.Itoa(len(insurers)), strconv.Itoa(int(loan.ID)))
 	for _, availableInsurer := range insurers {
 		loan.AddInsurer(availableInsurer)

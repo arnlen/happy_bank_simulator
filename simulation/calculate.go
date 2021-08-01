@@ -26,7 +26,7 @@ func calculateAmountToLendForLender(amount float64) float64 {
 	return amount / float64(lenderQuantity)
 }
 
-func canThisBorrowerTakeThisLoan(borrower *models.Borrower, loan *models.Loan) bool {
+func canThisBorrowerTakeThisLoan(borrower *models.Actor, loan *models.Loan) bool {
 	loans := borrower.Loans
 	totalAmountBorrowed := borrower.GetTotalAmountBorrowed()
 	fmt.Printf("Borrower #%s has %s loans for a total of %1.2f €\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(len(loans)), totalAmountBorrowed)

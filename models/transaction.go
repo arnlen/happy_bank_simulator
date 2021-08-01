@@ -12,9 +12,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Declare conformity with Actor interface
-var _ ModelBase = (*Transaction)(nil)
-
 type Transaction struct {
 	gorm.Model
 	SenderType   string
@@ -57,9 +54,9 @@ func CreateTransaction(sender Actor, receiver Actor, amount float64) *Transactio
 
 	transaction := &Transaction{
 		SenderID:     int(sender.GetID()),
-		SenderType:   sender.ModelName(),
+		SenderType:   sender.Type,
 		ReceiverID:   int(receiver.GetID()),
-		ReceiverType: receiver.ModelName(),
+		ReceiverType: receiver.Type,
 		Amount:       amount,
 		isDeposit:    false,
 	}
@@ -68,12 +65,12 @@ func CreateTransaction(sender Actor, receiver Actor, amount float64) *Transactio
 	return transaction
 }
 
-func NewDepositTransaction(borrower Borrower, amount float64) *Transaction {
+func NewDepositTransaction(borrower Actor, amount float64) *Transaction {
 	borrower.UpdateBalance(-amount)
 
 	return &Transaction{
 		SenderID:     int(borrower.GetID()),
-		SenderType:   borrower.ModelName(),
+		SenderType:   borrower.Type,
 		ReceiverType: "deposit",
 		ReceiverID:   0,
 		Amount:       amount,
@@ -81,7 +78,7 @@ func NewDepositTransaction(borrower Borrower, amount float64) *Transaction {
 	}
 }
 
-func CreateDepositTransaction(borrower Borrower, amount float64) *Transaction {
+func CreateDepositTransaction(borrower Actor, amount float64) *Transaction {
 	depositTransaction := NewDepositTransaction(borrower, amount)
 	depositTransaction.Save()
 	return depositTransaction

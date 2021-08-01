@@ -39,11 +39,11 @@ func createInitialLoans() []*models.Loan {
 	return loans
 }
 
-func createBorrowersForLoans(loans []*models.Loan) []*models.Borrower {
-	var borrowers []*models.Borrower
+func createBorrowersForLoans(loans []*models.Loan) []*models.Actor {
+	var borrowers []*models.Actor
 
 	for _, loan := range loans {
-		borrower := models.CreateDefaultBorrower()
+		borrower := models.CreateDefaultActor(configs.Actor.Borrower)
 		fmt.Printf("Borrower #%s created\n", strconv.Itoa(int(borrower.ID)))
 
 		if canThisBorrowerTakeThisLoan(borrower, loan) {
@@ -59,9 +59,9 @@ func createBorrowersForLoans(loans []*models.Loan) []*models.Borrower {
 	return borrowers
 }
 
-func createMissingLenders(missingQuantity int, availableLenders []*models.Lender) []*models.Lender {
+func createMissingLenders(missingQuantity int, availableLenders []*models.Actor) []*models.Actor {
 	for i := 0; i < missingQuantity; i++ {
-		lender := models.CreateDefaultLender()
+		lender := models.CreateDefaultActor(configs.Actor.Lender)
 		availableLenders = append(availableLenders, lender)
 		fmt.Printf("%s/%s - Lender #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(lender.ID)))
 	}
@@ -69,9 +69,9 @@ func createMissingLenders(missingQuantity int, availableLenders []*models.Lender
 	return availableLenders
 }
 
-func createMissingInsurers(missingQuantity int, availableInsurers []*models.Insurer) []*models.Insurer {
+func createMissingInsurers(missingQuantity int, availableInsurers []*models.Actor) []*models.Actor {
 	for i := 0; i < missingQuantity; i++ {
-		insurer := models.CreateDefaultInsurer()
+		insurer := models.CreateDefaultActor(configs.Actor.Insurer)
 		availableInsurers = append(availableInsurers, insurer)
 		fmt.Printf("%s/%s - Insurer #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(insurer.ID)))
 	}

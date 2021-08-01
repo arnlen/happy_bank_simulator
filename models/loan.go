@@ -15,15 +15,12 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Declare conformity with Actor interface
-var _ ModelBase = (*Loan)(nil)
-
 type Loan struct {
 	gorm.Model
-	Borrower         Borrower
+	Borrower         Actor
 	BorrowerID       uint
-	Lenders          []*Lender  `gorm:"many2many:loan_lenders;"`
-	Insurers         []*Insurer `gorm:"many2many:loan_insurers;"`
+	Lenders          []*Actor `gorm:"many2many:loan_actors;"`
+	Insurers         []*Actor `gorm:"many2many:loan_actors;"`
 	StartDate        string
 	EndDate          string
 	Duration         int
@@ -59,12 +56,12 @@ func (instance *Loan) Save() {
 	instance.Refresh()
 }
 
-func (instance *Loan) AddLender(lender *Lender) {
-	database.GetDB().Model(&instance).Association("Lenders").Append(lender)
+func (instance *Loan) AddLender(lender *Actor) {
+	database.GetDB().Model(&instance).Association("Actors").Append(lender)
 }
 
-func (instance *Loan) AddInsurer(insurer *Insurer) {
-	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
+func (instance *Loan) AddInsurer(insurer *Actor) {
+	database.GetDB().Model(&instance).Association("Actors").Append(insurer)
 }
 
 func (instance *Loan) SetRandomFailureDate() int {
