@@ -5,24 +5,11 @@ import (
 	"strconv"
 
 	"happy_bank_simulator/app/configs"
+	"happy_bank_simulator/charts"
 	databaseHelpers "happy_bank_simulator/database/helpers"
 	"happy_bank_simulator/helpers"
 	"happy_bank_simulator/models"
 )
-
-// TODO NEXT STEPS
-//
-// 1. Create method #runSimulation(numberOfMonths)
-// 2. For every month, take every borrower, and check if it should fail && this month?
-// 3a. For those who fail, implement the failure (balance == 0 + log).
-// 3b. For those who don't fail, create the transaction borrower => lender + log
-// 4. Print a simulation summary including:
-// 		- Total loans at the beginning vs total loans at the end (diff = failures)
-// 		- Total money in the economy at the beginning vs at the end
-//
-// - Create transaction for every loan assignation
-//
-// - Bind "borrowers", "insurers", "lenders", "loans" and "transactions" to tabs to see ouput of simulation
 
 func Prepare() {
 	databaseHelpers.DropBD()
@@ -54,7 +41,7 @@ func Run() {
 	fmt.Println("\nRunning a new simulation! 🚀")
 	simulationStartDate := helpers.ParseStringToDate(configs.General.StartDate)
 	simulationDuration := configs.General.Duration
-	// echartsManager := EchartsManager{}
+	chartsManager := charts.ChartsManager{}
 
 	for monthIndex := 0; monthIndex < simulationDuration-1; monthIndex++ {
 		currentDate := helpers.AddMonthsToDate(simulationStartDate, monthIndex)
@@ -76,13 +63,37 @@ func Run() {
 			insurers := loan.Insurers
 			quantityOfInsurers := len(insurers)
 
-			// Check is this actor already have a chart
-			// echartsManager.findOrCreateChartForActor(borrower)
+			// ------- CHARTS -------
 
-			// actorChart := ActorChart{}
-			// actorChart.NewChartForActor(&borrower)
-			// actorChart.AddItem(currentDate.String(), borrower.Balance)
-			// echartsManager.AddChart(&actorChart)
+			// Borrower
+			borrowerActorChart := chartsManager.FindChartForActor(&borrower)
+			if borrowerActorChart == nil {
+				actorChart := chartsManager.CreateChartForActor(&borrower)
+				chartsManager.AddChartToList(actorChart)
+			}
+			borrowerActorChart.AddItem(helpers.TimeDateToString(currentDate), borrower.Balance)
+
+			// Lenders
+			for _, lender := range lenders {
+				lenderActorChart := chartsManager.FindChartForActor(lender)
+				if lenderActorChart == nil {
+					actorChart := chartsManager.CreateChartForActor(lender)
+					chartsManager.AddChartToList(actorChart)
+				}
+				lenderActorChart.AddItem(helpers.TimeDateToString(currentDate), lender.Balance)
+			}
+
+			// Insurers
+			for _, insurer := range insurers {
+				insurerActorChart := chartsManager.FindChartForActor(insurer)
+				if insurerActorChart == nil {
+					actorChart := chartsManager.CreateChartForActor(insurer)
+					chartsManager.AddChartToList(actorChart)
+				}
+				insurerActorChart.AddItem(helpers.TimeDateToString(currentDate), insurer.Balance)
+			}
+
+			// ----------------------
 
 			loan.Print()
 
@@ -151,5 +162,5 @@ func Run() {
 		fmt.Printf("\n--------- End of Month #%s - %s ---------\n", strconv.Itoa(monthIndex+1), helpers.TimeDateToString(currentDate))
 	}
 
-	// echartsManager.DrawCharts()
+	chartsManager.DrawChartsFromList()
 }
