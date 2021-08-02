@@ -10,14 +10,14 @@ import (
 )
 
 func calculateLendersQuantityRequired(amount float64) int {
-	maxAmountPerBorrower := configs.Lender.MaxAmountPerLoan
+	maxAmountPerBorrower := configs.Actor.MaxAmountPerLoan
 	quantity := int(math.Ceil(float64(amount) / float64(maxAmountPerBorrower)))
 	fmt.Printf("%s lenders are required\n", strconv.Itoa(quantity))
 	return quantity
 }
 
 func calculateInsurersQuantityRequired(amount float64) int {
-	maxAmountPerLoan := configs.Insurer.MaxAmountPerLoan
+	maxAmountPerLoan := configs.Actor.MaxAmountPerLoan
 	return int(math.Ceil(float64(amount) / float64(maxAmountPerLoan)))
 }
 
@@ -35,7 +35,7 @@ func canThisBorrowerTakeThisLoan(borrower *models.Actor, loan *models.Loan) bool
 	fmt.Printf("Borrower #%s net balance is %1.2f €\n", strconv.Itoa(int(borrower.ID)), borrowerNetBalance)
 
 	loanAmount := loan.Amount
-	balanceLeverageRatio := configs.Borrower.BalanceLeverageRatio
+	balanceLeverageRatio := configs.Actor.BorrowerBalanceLeverageRatio
 
 	ratio := float64(borrowerNetBalance / loanAmount)
 

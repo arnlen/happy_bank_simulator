@@ -9,16 +9,8 @@ import (
 
 type Controller struct{}
 
-func (c *Controller) GetModelName(pluralize bool) string {
-	insurerModel := models.Actor{}
-	if pluralize {
-		return fmt.Sprintf("%ss", insurerModel.Type)
-	}
-	return insurerModel.Type
-}
-
 func (c *Controller) GetInsurerTableData() [][]string {
-	insurers := models.ListActors(configs.Actor.Insurer)
+	insurers := models.ListActors(configs.Actor.InsurerString)
 
 	insurerTableData := [][]string{
 		{"ID", "Name", "Initial Balance", "Balance"}}

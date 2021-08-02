@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/app/transactions"
 	"strings"
 
@@ -34,7 +35,7 @@ func RenderIndex() *fyne.Container {
 	table.SetColumnWidth(2, 150)
 	table.SetColumnWidth(3, 150)
 
-	newButtonString := strings.Title(transactionsController.GetModelName(false))
+	newButtonString := strings.Title(configs.Transaction.String)
 	newButton := widget.NewButtonWithIcon(newButtonString, theme.ContentAddIcon(), func() {
 		fmt.Println("newButton", newButtonString)
 		RenderNew()

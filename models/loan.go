@@ -57,11 +57,11 @@ func (instance *Loan) Save() {
 }
 
 func (instance *Loan) AddLender(lender *Actor) {
-	database.GetDB().Model(&instance).Association("Actors").Append(lender)
+	database.GetDB().Model(&instance).Association("Lenders").Append(lender)
 }
 
 func (instance *Loan) AddInsurer(insurer *Actor) {
-	database.GetDB().Model(&instance).Association("Actors").Append(insurer)
+	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
 }
 
 func (instance *Loan) SetRandomFailureDate() int {

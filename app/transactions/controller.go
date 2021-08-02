@@ -8,14 +8,6 @@ import (
 
 type Controller struct{}
 
-func (c *Controller) GetModelName(pluralize bool) string {
-	transactionModel := models.Transaction{}
-	if pluralize {
-		return fmt.Sprintf("%ss", transactionModel.ModelName())
-	}
-	return transactionModel.ModelName()
-}
-
 func (c *Controller) GetTransactionTableData() [][]string {
 	transactions := models.ListTransactions()
 

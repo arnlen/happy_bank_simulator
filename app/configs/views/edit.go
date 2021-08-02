@@ -132,85 +132,47 @@ func RenderEdit() *fyne.Container {
 	labels = append(labels, borrowerFailureRateLabel)
 	entries = append(entries, borrowerFailureRateEntry)
 
-	// configs.Borrower fields
+	// configs.Actor fields
 
-	borrowerInitialBalanceLabel := widget.NewLabel("Solde initial des emprunteurs")
-	borrowerInitialBalanceEntry := widget.NewEntry()
-	borrowerInitialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Borrower.InitialBalance))
-	borrowerInitialBalanceEntry.OnChanged = func(value string) {
-		borrowerInitialBalance, _ := strconv.ParseFloat(value, 64)
-		configs.Borrower.InitialBalance = borrowerInitialBalance
-		fmt.Println("configs.Borrower.InitialBalance updated to", value)
+	maxAmountPerLoanLabel := widget.NewLabel("Montant max par prêt par acteur")
+	maxAmountPerLoanEntry := widget.NewEntry()
+	maxAmountPerLoanEntry.SetText(fmt.Sprintf("%1.2f", configs.Actor.MaxAmountPerLoan))
+	maxAmountPerLoanEntry.OnChanged = func(value string) {
+		lenderMaxAmountPerLoan, _ := strconv.ParseFloat(value, 64)
+		configs.Actor.MaxAmountPerLoan = lenderMaxAmountPerLoan
+		fmt.Println("configs.Actor.MaxAmountPerLoan updated to", value)
 	}
-	labels = append(labels, borrowerInitialBalanceLabel)
-	entries = append(entries, borrowerInitialBalanceEntry)
+	labels = append(labels, maxAmountPerLoanLabel)
+	entries = append(entries, maxAmountPerLoanEntry)
 
-	// TODO: add fields for BalanceLeverageRatio
+	initialBalanceLabel := widget.NewLabel("Solde initial des acteurs")
+	initialBalanceEntry := widget.NewEntry()
+	initialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Actor.InitialBalance))
+	initialBalanceEntry.OnChanged = func(value string) {
+		borrowerInitialBalance, _ := strconv.ParseFloat(value, 64)
+		configs.Actor.InitialBalance = borrowerInitialBalance
+		fmt.Println("configs.Actor.InitialBalance updated to", value)
+	}
+	labels = append(labels, initialBalanceLabel)
+	entries = append(entries, initialBalanceEntry)
+
 	balanceLeverageRatioLabel := widget.NewLabel("Ratio montant prêté sur balance")
 	balanceLeverageRatioEntry := widget.NewEntry()
-	balanceLeverageRatioEntry.SetText(fmt.Sprintf("%1.2f", configs.Borrower.BalanceLeverageRatio))
+	balanceLeverageRatioEntry.SetText(fmt.Sprintf("%1.2f", configs.Actor.BorrowerBalanceLeverageRatio))
 	balanceLeverageRatioEntry.OnChanged = func(value string) {
 		balanceLeverageRatio, _ := strconv.ParseFloat(value, 64)
-		configs.Borrower.BalanceLeverageRatio = balanceLeverageRatio
-		fmt.Println("configs.Borrower.BalanceLeverageRatio updated to", value)
+		configs.Actor.BorrowerBalanceLeverageRatio = balanceLeverageRatio
+		fmt.Println("configs.Actor.BorrowerBalanceLeverageRatio updated to", value)
 	}
 	labels = append(labels, balanceLeverageRatioLabel)
 	entries = append(entries, balanceLeverageRatioEntry)
 
-	// configs.Lender fields
-
-	lenderInitialBalanceLabel := widget.NewLabel("Solde initial des prêteurs")
-	lenderInitialBalanceEntry := widget.NewEntry()
-	lenderInitialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Lender.InitialBalance))
-	lenderInitialBalanceEntry.OnChanged = func(value string) {
-		lenderInitialBalance, _ := strconv.ParseFloat(value, 64)
-		configs.Lender.InitialBalance = lenderInitialBalance
-		fmt.Println("configs.Lender.InitialBalance updated to", value)
-	}
-	labels = append(labels, lenderInitialBalanceLabel)
-	entries = append(entries, lenderInitialBalanceEntry)
-
-	lenderMaxAmountPerLoanLabel := widget.NewLabel("Montant max par prêt par prêteur")
-	lenderMaxAmountPerLoanEntry := widget.NewEntry()
-	lenderMaxAmountPerLoanEntry.SetText(fmt.Sprintf("%1.2f", configs.Lender.MaxAmountPerLoan))
-	lenderMaxAmountPerLoanEntry.OnChanged = func(value string) {
-		lenderMaxAmountPerLoan, _ := strconv.ParseFloat(value, 64)
-		configs.Lender.MaxAmountPerLoan = lenderMaxAmountPerLoan
-		fmt.Println("configs.Lender.MaxAmountPerLoan updated to", value)
-	}
-	labels = append(labels, lenderMaxAmountPerLoanLabel)
-	entries = append(entries, lenderMaxAmountPerLoanEntry)
-
-	// Insurer fields
-
-	insurerInitialBalanceLabel := widget.NewLabel("Solde initial des assureurs")
-	insurerInitialBalanceEntry := widget.NewEntry()
-	insurerInitialBalanceEntry.SetText(fmt.Sprintf("%1.2f", configs.Insurer.InitialBalance))
-	insurerInitialBalanceEntry.OnChanged = func(value string) {
-		insurerInitialBalance, _ := strconv.ParseFloat(value, 64)
-		configs.Insurer.InitialBalance = insurerInitialBalance
-		fmt.Println("configs.Insurer.InitialBalance updated to", value)
-	}
-	labels = append(labels, insurerInitialBalanceLabel)
-	entries = append(entries, insurerInitialBalanceEntry)
-
-	insurerMaxAmountPerLoanLabel := widget.NewLabel("Montant max par prêt par assureur")
-	insurerMaxAmountPerLoanEntry := widget.NewEntry()
-	insurerMaxAmountPerLoanEntry.SetText(fmt.Sprintf("%1.2f", configs.Insurer.MaxAmountPerLoan))
-	insurerMaxAmountPerLoanEntry.OnChanged = func(value string) {
-		insurerMaxAmountPerLoan, _ := strconv.ParseFloat(value, 64)
-		configs.Insurer.MaxAmountPerLoan = insurerMaxAmountPerLoan
-		fmt.Println("configs.Insurer.MaxAmountPerLoan updated to", value)
-	}
-	labels = append(labels, insurerMaxAmountPerLoanLabel)
-	entries = append(entries, insurerMaxAmountPerLoanEntry)
+	// Master Container: where everything is bounded together
 
 	for index, entry := range entries {
 		borderContainer := container.NewBorder(nil, nil, labels[index], nil, entry)
 		borderContainers = append(borderContainers, borderContainer)
 	}
-
-	// Master Container: where everything is bounded together
 
 	vBox := container.NewVBox()
 	for _, hbox := range borderContainers {

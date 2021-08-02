@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/app/helpers"
 	"happy_bank_simulator/app/lenders"
 	"happy_bank_simulator/app/loans"
@@ -37,7 +38,7 @@ func RenderIndex() *fyne.Container {
 	table.SetColumnWidth(2, 150)
 	table.SetColumnWidth(3, 150)
 
-	newButtonString := strings.Title(lendersController.GetModelName(false))
+	newButtonString := strings.Title(configs.Actor.LenderString)
 	newButton := widget.NewButtonWithIcon(newButtonString, theme.ContentAddIcon(), func() {
 		fmt.Println("newButton", newButtonString)
 		RenderNew()
@@ -62,7 +63,7 @@ func RenderNew() {
 		{Text: "Prêt associé", Widget: &selectMenu},
 	}
 
-	dialog.ShowForm(strings.Title(lendersController.GetModelName(false)), "Créer", "Annuler", formItems, func(bool) {
+	dialog.ShowForm(strings.Title(configs.Actor.LenderString), "Créer", "Annuler", formItems, func(bool) {
 		fmt.Println("Nom :", nameEntry.Text)
 		fmt.Println("Balance :", balanceEntry.Text)
 	}, helpers.GetMasterWindow())

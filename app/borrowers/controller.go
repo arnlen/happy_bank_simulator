@@ -9,16 +9,8 @@ import (
 
 type Controller struct{}
 
-func (c *Controller) GetModelName(pluralize bool) string {
-	borrowerModel := models.Actor{}
-	if pluralize {
-		return fmt.Sprintf("%ss", borrowerModel.Type)
-	}
-	return borrowerModel.Type
-}
-
 func (c *Controller) GetBorrowerTableData() [][]string {
-	borrowers := models.ListActors(configs.Actor.Borrower)
+	borrowers := models.ListActors(configs.Actor.BorrowerString)
 
 	borrowerTableData := [][]string{
 		{"ID", "Name", "Initial Balance", "Balance"}}
@@ -38,5 +30,5 @@ func (c *Controller) GetBorrowerTableData() [][]string {
 }
 
 func (c *Controller) Create(name string, balance float64) *models.Actor {
-	return models.CreateActor(configs.Actor.Borrower, name, balance)
+	return models.CreateActor(configs.Actor.BorrowerString, name, balance)
 }

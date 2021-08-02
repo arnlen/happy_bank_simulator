@@ -39,7 +39,7 @@ func (instance *Actor) GetNetBalance() float64 {
 	netBalance := 0.0
 
 	switch instance.Type {
-	case configs.Actor.Borrower:
+	case configs.Actor.BorrowerString:
 		netBalance = instance.Balance - instance.GetTotalAmountBorrowed()
 	default:
 		netBalance = instance.Balance
@@ -50,7 +50,7 @@ func (instance *Actor) GetNetBalance() float64 {
 
 // TODO: refactor using double return, including error. See Go time package for example
 func (instance *Actor) GetTotalAmountBorrowed() float64 {
-	if instance.Type != configs.Actor.Borrower {
+	if instance.Type != configs.Actor.BorrowerString {
 		log.Fatal("This actor is not a borrower")
 	}
 
@@ -76,13 +76,13 @@ func (instance *Actor) GetID() uint {
 
 func FindActor(actorType string, id int) *Actor {
 	var actor Actor
-	database.GetDB().Preload(clause.Associations).First(&actor, id)
+	database.GetDB().Preload(clause.Associations).Where("type = ?", actorType).First(&actor, id)
 	return &actor
 }
 
 func ListActors(actorType string) []*Actor {
 	var actors []*Actor
-	database.GetDB().Preload(clause.Associations).Find(&actors)
+	database.GetDB().Preload(clause.Associations).Where("type = ?", actorType).Find(&actors)
 	return actors
 }
 

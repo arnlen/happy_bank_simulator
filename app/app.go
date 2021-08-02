@@ -4,17 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"happy_bank_simulator/app/borrowers"
 	borrowerViews "happy_bank_simulator/app/borrowers/views"
+	"happy_bank_simulator/app/configs"
 	configViews "happy_bank_simulator/app/configs/views"
 	appHelpers "happy_bank_simulator/app/helpers"
-	"happy_bank_simulator/app/insurers"
 	insurerViews "happy_bank_simulator/app/insurers/views"
-	"happy_bank_simulator/app/lenders"
 	lenderViews "happy_bank_simulator/app/lenders/views"
-	"happy_bank_simulator/app/loans"
 	loanViews "happy_bank_simulator/app/loans/views"
-	"happy_bank_simulator/app/transactions"
 	transactionViews "happy_bank_simulator/app/transactions/views"
 	"happy_bank_simulator/database"
 	databaseHelpers "happy_bank_simulator/database/helpers"
@@ -60,11 +56,6 @@ func InitApp() {
 }
 
 func renderSimulationResultsWindow() {
-	loansController := loans.Controller{}
-	borrowersController := borrowers.Controller{}
-	lendersController := lenders.Controller{}
-	insurersController := insurers.Controller{}
-	transactionsController := transactions.Controller{}
 
 	// overviewView := overview.RenderOverview()
 	loanIndexView := loanViews.RenderIndex()
@@ -74,12 +65,11 @@ func renderSimulationResultsWindow() {
 	transactionIndexView := transactionViews.RenderIndex()
 
 	tabs := container.NewAppTabs(
-		// container.NewTabItem("Aperçu", overviewView),
-		container.NewTabItem(strings.Title(loansController.GetModelName(true)), loanIndexView),
-		container.NewTabItem(strings.Title(borrowersController.GetModelName(true)), borrowerIndexView),
-		container.NewTabItem(strings.Title(lendersController.GetModelName(true)), lenderIndexView),
-		container.NewTabItem(strings.Title(insurersController.GetModelName(true)), insurerIndexView),
-		container.NewTabItem(strings.Title(transactionsController.GetModelName(true)), transactionIndexView),
+		container.NewTabItem(strings.Title(configs.Loan.String), loanIndexView),
+		container.NewTabItem(strings.Title(configs.Actor.BorrowerString), borrowerIndexView),
+		container.NewTabItem(strings.Title(configs.Actor.LenderString), lenderIndexView),
+		container.NewTabItem(strings.Title(configs.Actor.InsurerString), insurerIndexView),
+		container.NewTabItem(strings.Title(configs.Transaction.String), transactionIndexView),
 	)
 
 	tabs.SetTabLocation(container.TabLocationLeading)

@@ -2,7 +2,7 @@ package configs
 
 import ()
 
-// Types definitions
+// ----- GENERAL CONFIGS -----
 
 type general struct {
 	StartDate             string  // Simulation start date
@@ -11,6 +11,15 @@ type general struct {
 	InsuranceInterestRate float64 // Interest rate of the insurance part of a loan
 }
 
+var General = general{
+	StartDate:             "07/2022",
+	Duration:              60,
+	CreditInterestRate:    0.03,
+	InsuranceInterestRate: 0.03,
+}
+
+// ----- LOAN CONFIGS -----
+
 type loan struct {
 	InitialQuantity      int     // How many loans should exist at the beginning at the simulation
 	DefaultAmount        float64 // Default amount for a new loan
@@ -18,44 +27,7 @@ type loan struct {
 	SecurityDepositRate  float64 // For a given loan amout, how much % a borrower must stake
 	InsuredQuantityRatio float64 // How many loans are insured, in % of the total
 	FailureRate          float64 // How many loans should fail, in % of the total
-}
-
-type borrower struct {
-	InitialBalance       float64 // Initial balance
-	BalanceLeverageRatio float64 // Ratio between the balance of the borrower and the amount he can borrow
-}
-
-type lender struct {
-	InitialBalance   float64 // Initial balance
-	MaxAmountPerLoan float64 // Maximum amout of money a lender can lend per loan
-}
-
-type insurer struct {
-	InitialBalance   float64 // Initial balance
-	MaxAmountPerLoan float64 // Maximum amout of money an insurer can insure per loan
-}
-
-type actor struct {
-	Borrower       string
-	Lender         string
-	Insurer        string
-	InitialBalance float64 // Initial balance
-}
-
-var Actor = actor{
-	Borrower:       "borrower",
-	Lender:         "lender",
-	Insurer:        "insurer",
-	InitialBalance: 5000,
-}
-
-// Config intialization
-
-var General = general{
-	StartDate:             "07/2022",
-	Duration:              60,
-	CreditInterestRate:    0.03,
-	InsuranceInterestRate: 0.03,
+	String               string
 }
 
 var Loan = loan{
@@ -65,19 +37,35 @@ var Loan = loan{
 	SecurityDepositRate:  0.1,
 	InsuredQuantityRatio: 1,
 	FailureRate:          1,
+	String:               "loan",
 }
 
-var Borrower = borrower{
-	InitialBalance:       5000,
-	BalanceLeverageRatio: 1.0,
+// ----- ACTOR CONFIGS -----
+
+type actor struct {
+	MaxAmountPerLoan             float64 // Maximum amout of money a lender of an insurer can lend/insure per loan
+	InitialBalance               float64 // Initial balance
+	BorrowerBalanceLeverageRatio float64 // Ratio between the balance of the borrower and the amount he can borrow
+	BorrowerString               string
+	LenderString                 string
+	InsurerString                string
 }
 
-var Lender = lender{
-	InitialBalance:   5000,
-	MaxAmountPerLoan: 1000,
+var Actor = actor{
+	MaxAmountPerLoan:             1000,
+	InitialBalance:               5000,
+	BorrowerBalanceLeverageRatio: 1.0,
+	BorrowerString:               "borrower",
+	LenderString:                 "lender",
+	InsurerString:                "insurer",
 }
 
-var Insurer = insurer{
-	InitialBalance:   5000,
-	MaxAmountPerLoan: 1000,
+// ----- LOAN CONFIGS -----
+
+type transaction struct {
+	String string
+}
+
+var Transaction = transaction{
+	String: "transaction",
 }
