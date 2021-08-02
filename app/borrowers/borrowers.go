@@ -1,11 +1,12 @@
-package views
+package borrowers
 
 import (
 	"fmt"
-	"happy_bank_simulator/app/borrowers"
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/app/helpers"
 	"happy_bank_simulator/app/loans"
+	"happy_bank_simulator/models"
+	"strconv"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -14,9 +15,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
-
-// Initialize controller
-var borrowersController = borrowers.Controller{}
 
 func RenderIndex() *fyne.Container {
 	borrowerTableData := updateTableData()
@@ -48,12 +46,11 @@ func RenderIndex() *fyne.Container {
 }
 
 func updateTableData() [][]string {
-	return borrowersController.GetBorrowerTableData()
+	return getBorrowerTableData()
 }
 
 func RenderNew() {
-	loansController := loans.Controller{}
-	loanList := loansController.GetLoanStringList()
+	loanList := loans.GetLoanStringList()
 
 	nameEntry := widget.NewEntry()
 	balanceEntry := widget.NewEntry()
@@ -71,4 +68,28 @@ func RenderNew() {
 		fmt.Println("Nom :", nameEntry.Text)
 		fmt.Println("Balance :", balanceEntry.Text)
 	}, helpers.GetMasterWindow())
+}
+
+func getBorrowerTableData() [][]string {
+	borrowers := models.ListActors(configs.Actor.BorrowerString)
+
+	borrowerTableData := [][]string{
+		{"ID", "Name", "Initial Balance", "Balance"}}
+
+	for _, borrower := range borrowers {
+		borrowerRow := []string{
+			strconv.Itoa(int(borrower.ID)),
+			borrower.Name,
+			fmt.Sprintf("%1.2f €", borrower.InitialBalance),
+			fmt.Sprintf("%1.2f €", borrower.Balance),
+		}
+
+		borrowerTableData = append(borrowerTableData, borrowerRow)
+	}
+
+	return borrowerTableData
+}
+
+func Create(name string, balance float64) *models.Actor {
+	return models.CreateActor(configs.Actor.BorrowerString, name, balance)
 }

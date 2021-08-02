@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	borrowerViews "happy_bank_simulator/app/borrowers/views"
+	"happy_bank_simulator/app/borrowers"
 	"happy_bank_simulator/app/configs"
-	configViews "happy_bank_simulator/app/configs/views"
 	appHelpers "happy_bank_simulator/app/helpers"
-	insurerViews "happy_bank_simulator/app/insurers/views"
-	lenderViews "happy_bank_simulator/app/lenders/views"
-	loanViews "happy_bank_simulator/app/loans/views"
-	transactionViews "happy_bank_simulator/app/transactions/views"
+	"happy_bank_simulator/app/insurers"
+	"happy_bank_simulator/app/lenders"
+	"happy_bank_simulator/app/loans"
+	"happy_bank_simulator/app/transactions"
 	"happy_bank_simulator/database"
 	databaseHelpers "happy_bank_simulator/database/helpers"
 	"happy_bank_simulator/simulation"
@@ -31,7 +30,7 @@ func InitApp() {
 	masterWindow.Resize(fyne.NewSize(1200, 700))
 	appHelpers.SetMasterWindow(&masterWindow)
 
-	configEditView := configViews.RenderEdit()
+	configEditView := configs.RenderEdit()
 
 	runButton := widget.NewButtonWithIcon("Run simulation", theme.ContentAddIcon(), func() {
 		simulation.Prepare()
@@ -58,11 +57,11 @@ func InitApp() {
 func renderSimulationResultsWindow() {
 
 	// overviewView := overview.RenderOverview()
-	loanIndexView := loanViews.RenderIndex()
-	borrowerIndexView := borrowerViews.RenderIndex()
-	lenderIndexView := lenderViews.RenderIndex()
-	insurerIndexView := insurerViews.RenderIndex()
-	transactionIndexView := transactionViews.RenderIndex()
+	loanIndexView := loans.RenderIndex()
+	borrowerIndexView := borrowers.RenderIndex()
+	lenderIndexView := lenders.RenderIndex()
+	insurerIndexView := insurers.RenderIndex()
+	transactionIndexView := transactions.RenderIndex()
 
 	tabs := container.NewAppTabs(
 		container.NewTabItem(strings.Title(configs.Loan.String), loanIndexView),

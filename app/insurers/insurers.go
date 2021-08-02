@@ -1,19 +1,18 @@
-package views
+package insurers
 
 import (
 	"fmt"
-	"happy_bank_simulator/app/insurers"
+	"happy_bank_simulator/app/configs"
+	"happy_bank_simulator/models"
+	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
-// Initialize controller
-var insurersController = insurers.Controller{}
-
 func RenderIndex() *fyne.Container {
-	insurerTableData := insurersController.GetInsurerTableData()
+	insurerTableData := getInsurerTableData()
 	fmt.Printf("%s", insurerTableData[2])
 
 	table := widget.NewTable(
@@ -34,4 +33,24 @@ func RenderIndex() *fyne.Container {
 	table.SetColumnWidth(3, 150)
 
 	return container.NewBorder(nil, nil, nil, nil, table)
+}
+
+func getInsurerTableData() [][]string {
+	insurers := models.ListActors(configs.Actor.InsurerString)
+
+	insurerTableData := [][]string{
+		{"ID", "Name", "Initial Balance", "Balance"}}
+
+	for _, insurer := range insurers {
+		insurerRow := []string{
+			strconv.Itoa(int(insurer.ID)),
+			insurer.Name,
+			fmt.Sprintf("%1.2f €", insurer.InitialBalance),
+			fmt.Sprintf("%1.2f €", insurer.Balance),
+		}
+
+		insurerTableData = append(insurerTableData, insurerRow)
+	}
+
+	return insurerTableData
 }

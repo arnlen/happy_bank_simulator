@@ -1,9 +1,13 @@
-package views
+package overview
 
 import (
 	"fmt"
 
-	"happy_bank_simulator/app/overview"
+	"happy_bank_simulator/database"
+	databaseHelpers "happy_bank_simulator/database/helpers"
+	"happy_bank_simulator/models"
+
+	"gorm.io/gorm/clause"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -16,9 +20,6 @@ var loansCounterBinding = binding.NewInt()
 var borrowersCounterBinding = binding.NewInt()
 var lendersCounterBinding = binding.NewInt()
 var insurersCounterBinding = binding.NewInt()
-
-// Initialize controller
-var overviewController = overview.Controller{}
 
 func RenderOverview() *fyne.Container {
 	loansCounterBindingStrings := binding.IntToString(loansCounterBinding)
@@ -47,14 +48,14 @@ func RenderOverview() *fyne.Container {
 
 	populateDatabaseButton := widget.NewButton("Remplir la base", func() {
 		fmt.Println("Populate button tapped")
-		overviewController.PopulateDatabase()
-		updateCounters(overviewController.GetCounters())
+		populateDatabase()
+		updateCounters(getCounters())
 	})
 
 	wipeDatabaseButton := widget.NewButton("Vider la base de données", func() {
 		fmt.Println("Wipe button tapped")
-		overviewController.WipeDatabase()
-		updateCounters(overviewController.GetCounters())
+		wipeDatabase()
+		updateCounters(getCounters())
 	})
 
 	generateChartsButton := widget.NewButton("Générer les graphes", func() {
@@ -68,11 +69,11 @@ func RenderOverview() *fyne.Container {
 	)
 
 	refreshButton := widget.NewButton("Refraichir", func() {
-		updateCounters(overviewController.GetCounters())
+		updateCounters(getCounters())
 		fmt.Println("Refreshed!")
 	})
 
-	updateCounters(overviewController.GetCounters())
+	updateCounters(getCounters())
 
 	return container.NewBorder(refreshButton, hbox, nil, nil, vbox)
 }
@@ -83,4 +84,33 @@ func updateCounters(counters []int) {
 	insurersCounterBinding.Set(counters[2])
 	loansCounterBinding.Set(counters[3])
 	fmt.Println("Overview counters updated")
+}
+
+func getCounters() []int {
+	db := database.GetDB()
+
+	var borrowers []models.Actor
+	var lenders []models.Actor
+	var insurers []models.Actor
+	var loans []models.Loan
+
+	db.Preload(clause.Associations).Find(&borrowers)
+	db.Preload(clause.Associations).Find(&lenders)
+	db.Preload(clause.Associations).Find(&insurers)
+	db.Preload(clause.Associations).Find(&loans)
+
+	return []int{len(borrowers), len(lenders), len(insurers), len(loans)}
+}
+
+func populateDatabase() {
+	fmt.Println("Deactivated")
+}
+
+func wipeDatabase() {
+	databaseHelpers.DropBD()
+	fmt.Println("Database dropped")
+	database.InitDB()
+	fmt.Println("Database initialized")
+	databaseHelpers.MigrateDB()
+	fmt.Println("Database migrated")
 }
