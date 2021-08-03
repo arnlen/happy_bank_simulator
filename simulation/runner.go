@@ -64,41 +64,10 @@ func Run() {
 			quantityOfInsurers := len(insurers)
 			monthString := helpers.TimeDateToString(currentDate)
 
-			// ------- CHARTS -------
-
-			// Borrower
-			borrowerActorChart := chartsManager.FindActorChartInListFor(&borrower)
-			if borrowerActorChart == nil {
-				borrowerActorChart = charts.NewActorChartFor(&borrower)
-				chartsManager.AddChartToList(borrowerActorChart)
-			}
-
-			borrowerActorChart.Print()
-			borrowerActorChart.AddItem(monthString, borrower.Balance)
-
-			// Lenders
-			for _, lender := range lenders {
-				lenderActorChart := chartsManager.FindActorChartInListFor(lender)
-				if lenderActorChart == nil {
-					lenderActorChart = charts.NewActorChartFor(lender)
-					chartsManager.AddChartToList(lenderActorChart)
-				}
-				lenderActorChart.AddItem(monthString, lender.Balance)
-				lenderActorChart.Print()
-			}
-
-			// Insurers
-			for _, insurer := range insurers {
-				insurerActorChart := chartsManager.FindActorChartInListFor(insurer)
-				if insurerActorChart == nil {
-					insurerActorChart = charts.NewActorChartFor(insurer)
-					chartsManager.AddChartToList(insurerActorChart)
-				}
-				insurerActorChart.AddItem(helpers.TimeDateToString(currentDate), insurer.Balance)
-				insurerActorChart.Print()
-			}
-
-			// ----------------------
+			// ------- Updates charts for actors -------
+			chartsManager.UpdateChartFor([]*models.Actor{&borrower}, monthString)
+			chartsManager.UpdateChartFor(lenders, monthString)
+			chartsManager.UpdateChartFor(insurers, monthString)
 
 			loan.Print()
 

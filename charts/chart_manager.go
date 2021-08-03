@@ -17,20 +17,6 @@ type ChartsManager struct {
 
 // --- Instance methods ---
 
-func (instance *ChartsManager) DrawChartsFromList() {
-	instance.page = components.NewPage()
-	fmt.Printf("Drawing %s charts for:\n", strconv.Itoa(len(instance.actorCharts)))
-	for _, actorChart := range instance.actorCharts {
-		actorChart.finalize()
-		instance.page.AddCharts(actorChart.chart)
-	}
-	f, err := os.Create("tmp/line.html")
-	if err != nil {
-		panic(err)
-	}
-	instance.page.Render(io.MultiWriter(f))
-}
-
 func (instance *ChartsManager) FindActorChartInListFor(actor *models.Actor) *ActorChart {
 	actorName := chartNameFor(*actor)
 	fmt.Printf("Looking for an existing ActorChart with name: %s\n", actorName)
@@ -50,6 +36,32 @@ func (instance *ChartsManager) AddChartToList(chart *ActorChart) {
 	instance.actorCharts = append(instance.actorCharts, chart)
 	fmt.Printf("ActorChart added to actorCharts list, now containing %s actorCharts.\n",
 		strconv.Itoa(len(instance.actorCharts)))
+}
+
+func (instance *ChartsManager) DrawChartsFromList() {
+	instance.page = components.NewPage()
+	fmt.Printf("Drawing %s charts for:\n", strconv.Itoa(len(instance.actorCharts)))
+	for _, actorChart := range instance.actorCharts {
+		actorChart.finalize()
+		instance.page.AddCharts(actorChart.chart)
+	}
+	f, err := os.Create("tmp/line.html")
+	if err != nil {
+		panic(err)
+	}
+	instance.page.Render(io.MultiWriter(f))
+}
+
+func (instance *ChartsManager) UpdateChartFor(actors []*models.Actor, month string) {
+	for _, actor := range actors {
+		actorChart := instance.FindActorChartInListFor(actor)
+		if actorChart == nil {
+			actorChart = NewActorChartFor(actor)
+			instance.AddChartToList(actorChart)
+		}
+		actorChart.AddItem(month, actor.Balance)
+		actorChart.Print()
+	}
 }
 
 // --- Package methods ---

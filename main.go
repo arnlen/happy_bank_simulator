@@ -11,7 +11,7 @@ func main() {
 	database.InitDB()
 	databaseHelpers.MigrateDB()
 
-	// simulation.Prepare()
+	simulation.Prepare()
 	// app.InitApp()
 	simulation.Run()
 }
