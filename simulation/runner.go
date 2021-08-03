@@ -62,35 +62,40 @@ func Run() {
 			quantityOfLenders := len(lenders)
 			insurers := loan.Insurers
 			quantityOfInsurers := len(insurers)
+			monthString := helpers.TimeDateToString(currentDate)
 
 			// ------- CHARTS -------
 
 			// Borrower
-			borrowerActorChart := chartsManager.FindChartForActor(&borrower)
+			borrowerActorChart := chartsManager.FindActorChartInListFor(&borrower)
 			if borrowerActorChart == nil {
-				actorChart := chartsManager.CreateChartForActor(&borrower)
-				chartsManager.AddChartToList(actorChart)
+				borrowerActorChart = charts.NewActorChartFor(&borrower)
+				chartsManager.AddChartToList(borrowerActorChart)
 			}
-			borrowerActorChart.AddItem(helpers.TimeDateToString(currentDate), borrower.Balance)
+
+			borrowerActorChart.Print()
+			borrowerActorChart.AddItem(monthString, borrower.Balance)
 
 			// Lenders
 			for _, lender := range lenders {
-				lenderActorChart := chartsManager.FindChartForActor(lender)
+				lenderActorChart := chartsManager.FindActorChartInListFor(lender)
 				if lenderActorChart == nil {
-					actorChart := chartsManager.CreateChartForActor(lender)
-					chartsManager.AddChartToList(actorChart)
+					lenderActorChart = charts.NewActorChartFor(lender)
+					chartsManager.AddChartToList(lenderActorChart)
 				}
-				lenderActorChart.AddItem(helpers.TimeDateToString(currentDate), lender.Balance)
+				lenderActorChart.AddItem(monthString, lender.Balance)
+				lenderActorChart.Print()
 			}
 
 			// Insurers
 			for _, insurer := range insurers {
-				insurerActorChart := chartsManager.FindChartForActor(insurer)
+				insurerActorChart := chartsManager.FindActorChartInListFor(insurer)
 				if insurerActorChart == nil {
-					actorChart := chartsManager.CreateChartForActor(insurer)
-					chartsManager.AddChartToList(actorChart)
+					insurerActorChart = charts.NewActorChartFor(insurer)
+					chartsManager.AddChartToList(insurerActorChart)
 				}
 				insurerActorChart.AddItem(helpers.TimeDateToString(currentDate), insurer.Balance)
+				insurerActorChart.Print()
 			}
 
 			// ----------------------

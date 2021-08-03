@@ -38,7 +38,7 @@ type loan struct {
 }
 
 var Loan = loan{
-	InitialQuantity:      3,
+	InitialQuantity:      1,
 	DefaultAmount:        5000,
 	DefaultDuration:      24,
 	SecurityDepositRate:  0.1,

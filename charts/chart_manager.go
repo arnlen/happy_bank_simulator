@@ -7,9 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
-	"github.com/go-echarts/go-echarts/v2/opts"
 )
 
 type ChartsManager struct {
@@ -33,7 +31,7 @@ func (instance *ChartsManager) DrawChartsFromList() {
 	instance.page.Render(io.MultiWriter(f))
 }
 
-func (instance *ChartsManager) FindChartForActor(actor *models.Actor) *ActorChart {
+func (instance *ChartsManager) FindActorChartInListFor(actor *models.Actor) *ActorChart {
 	actorName := chartNameFor(*actor)
 	fmt.Printf("Looking for an existing ActorChart with name: %s\n", actorName)
 
@@ -48,37 +46,10 @@ func (instance *ChartsManager) FindChartForActor(actor *models.Actor) *ActorChar
 	return nil
 }
 
-func (instance *ChartsManager) CreateChartForActor(actor *models.Actor) *ActorChart {
-	actorChart := ActorChart{}
-	actorName := chartNameFor(*actor)
-	actorChart.actorName = actorName
-
-	lineSmoothChart := charts.NewLine()
-	lineSmoothChart.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{
-			Title:    actorName,
-			Subtitle: "Balance at the end of simulation",
-		}),
-	)
-
-	lineSmoothChart.SetSeriesOptions(charts.WithLineChartOpts(
-		opts.LineChart{
-			Smooth: true,
-		}),
-		charts.WithLabelOpts(opts.Label{
-			Show: true,
-		}),
-	)
-
-	actorChart.chart = lineSmoothChart
-	fmt.Printf("New ActorChart created for %s with chart ID %s\n", actorName, actorChart.chart.ChartID)
-
-	return &actorChart
-}
-
 func (instance *ChartsManager) AddChartToList(chart *ActorChart) {
 	instance.actorCharts = append(instance.actorCharts, chart)
-	fmt.Printf("ActorChart added to actorCharts list, now containing %s actorCharts.\n", strconv.Itoa(len(instance.actorCharts)))
+	fmt.Printf("ActorChart added to actorCharts list, now containing %s actorCharts.\n",
+		strconv.Itoa(len(instance.actorCharts)))
 }
 
 // --- Package methods ---
