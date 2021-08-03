@@ -4,6 +4,7 @@ import (
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
 	"log"
+	"strconv"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -70,10 +71,10 @@ func (instance *Actor) UpdateBalance(amount float64) {
 }
 
 func (instance *Actor) UpdateMontlyIncomes(amount float64) {
-	// if instance.Type != configs.Actor.BorrowerString {
-	// 	log.Fatalf("Tried to call UpdateMontlyIncomes on %s #%s (not a borrower)\n",
-	// 		instance.Type, strconv.Itoa(int(instance.ID)))
-	// }
+	if instance.Type != configs.Actor.BorrowerString {
+		log.Fatalf("Tried to call UpdateMontlyIncomes on %s #%s (not a borrower)\n",
+			instance.Type, strconv.Itoa(int(instance.ID)))
+	}
 
 	instance.MonthlyIncomes = amount
 	instance.Save()
