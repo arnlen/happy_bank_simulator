@@ -18,9 +18,12 @@ type ActorChart struct {
 
 func (instance *ActorChart) AddItem(month string, itemValue float64) {
 	instance.months = append(instance.months, month)
-	fmt.Println("📈 New month", month, "added to chart", instance.actorName)
+	fmt.Printf("📈 New month \"%s\" added to chart #%s for %s\n",
+		month, instance.chart.ChartID, instance.actorName)
+
 	instance.items = append(instance.items, opts.LineData{Value: itemValue})
-	fmt.Println("📈 New item", itemValue, "added to chart", instance.actorName)
+	fmt.Printf("📈 New item \"%1.2f\" added to chart #%s for %s\n",
+		itemValue, instance.chart.ChartID, instance.actorName)
 }
 
 func (instance *ActorChart) Print() *ActorChart {

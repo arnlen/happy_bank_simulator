@@ -30,8 +30,9 @@ func createInitialLoans() []*models.Loan {
 		willThisLoanFail := helpers.GetResultForProbability(configs.Loan.FailureRate)
 		if willThisLoanFail {
 			fmt.Println("This loan will fail 🚨")
-			numberOfMonthsBeforeFailure := loan.SetRandomFailureDate()
-			fmt.Printf("The failure will occure after %s months, on %s\n", strconv.Itoa(numberOfMonthsBeforeFailure), loan.WillFailOn)
+			loan.SetRandomNumberOfMonthsBeforeFailure()
+			fmt.Printf("The failure will occure after %s months, on %s\n",
+				strconv.Itoa(loan.NumberOfMonthsBeforeFailure), loan.WillFailOnString())
 		}
 
 		loans = append(loans, loan)
@@ -48,10 +49,11 @@ func createBorrowersForLoans(loans []*models.Loan) []*models.Actor {
 
 		if canThisBorrowerTakeThisLoan(borrower, loan) {
 			initialDepositAmount := loan.InitialDeposit
-			models.CreateDepositTransaction(*borrower, initialDepositAmount)
+			models.CreateDepositTransaction(*borrower, initialDepositAmount).Print()
 			borrower.Refresh()
 			fmt.Printf("Initial deposit of %1.2f € placed:\n", initialDepositAmount)
-			fmt.Printf("- Borrower #%s balance: %1.2f €\n", strconv.Itoa(int(borrower.ID)), borrower.Balance)
+			fmt.Printf("- Borrower #%s balance: %1.2f €\n",
+				strconv.Itoa(int(borrower.ID)), borrower.Balance)
 		}
 
 		borrowers = append(borrowers, borrower)
@@ -63,7 +65,8 @@ func createMissingLenders(missingQuantity int, availableLenders []*models.Actor)
 	for i := 0; i < missingQuantity; i++ {
 		lender := models.CreateDefaultActor(configs.Actor.LenderString)
 		availableLenders = append(availableLenders, lender)
-		fmt.Printf("%s/%s - Lender #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(lender.ID)))
+		fmt.Printf("%s/%s - Lender #%s created\n",
+			strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(lender.ID)))
 	}
 	fmt.Printf("%s total lenders now available\n", strconv.Itoa(len(availableLenders)))
 	return availableLenders
@@ -73,8 +76,10 @@ func createMissingInsurers(missingQuantity int, availableInsurers []*models.Acto
 	for i := 0; i < missingQuantity; i++ {
 		insurer := models.CreateDefaultActor(configs.Actor.InsurerString)
 		availableInsurers = append(availableInsurers, insurer)
-		fmt.Printf("%s/%s - Insurer #%s created\n", strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(insurer.ID)))
+		fmt.Printf("%s/%s - Insurer #%s created\n",
+			strconv.Itoa(i+1), strconv.Itoa(missingQuantity), strconv.Itoa(int(insurer.ID)))
 	}
-	fmt.Printf("%s total insurers now available\n", strconv.Itoa(len(availableInsurers)))
+	fmt.Printf("%s total insurers now available\n",
+		strconv.Itoa(len(availableInsurers)))
 	return availableInsurers
 }

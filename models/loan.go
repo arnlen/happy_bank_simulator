@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
+	"time"
 
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/database"
@@ -17,23 +18,22 @@ import (
 
 type Loan struct {
 	gorm.Model
-	Borrower         Actor
-	BorrowerID       uint
-	Lenders          []*Actor `gorm:"many2many:loan_actors;"`
-	Insurers         []*Actor `gorm:"many2many:loan_actors;"`
-	StartDate        string
-	EndDate          string
-	Duration         int
-	Amount           float64
-	RefundedAmount   float64
-	InitialDeposit   float64
-	CreditRate       float64
-	InsuranceRate    float64
-	MonthlyCredit    float64
-	MonthlyInsurance float64
-	IsInsured        bool
-	IsActive         bool
-	WillFailOn       string
+	Borrower                    Actor
+	BorrowerID                  uint
+	Lenders                     []*Actor `gorm:"many2many:loan_actors;"`
+	Insurers                    []*Actor `gorm:"many2many:loan_actors;"`
+	StartDate                   string
+	Duration                    int
+	Amount                      float64
+	RefundedAmount              float64
+	InitialDeposit              float64
+	CreditRate                  float64
+	InsuranceRate               float64
+	MonthlyCredit               float64
+	MonthlyInsurance            float64
+	IsInsured                   bool
+	IsActive                    bool
+	NumberOfMonthsBeforeFailure int
 }
 
 // ------- Instance methods -------
@@ -42,8 +42,10 @@ func (instance *Loan) ModelName() string {
 	return "loan"
 }
 
-func (instance *Loan) Refresh() {
-	database.GetDB().Preload(clause.Associations).Find(&instance)
+func (instance *Loan) EndDate() string {
+	startDate := helpers.ParseStringToDate(instance.StartDate)
+	endDate := helpers.AddMonthsToDate(startDate, instance.Duration)
+	return helpers.TimeDateToString(endDate)
 }
 
 func (instance *Loan) Save() {
@@ -53,7 +55,7 @@ func (instance *Loan) Save() {
 		log.Fatal(result.Error)
 	}
 
-	instance.Refresh()
+	instance.refresh()
 }
 
 func (instance *Loan) AddLender(lender *Actor) {
@@ -64,28 +66,52 @@ func (instance *Loan) AddInsurer(insurer *Actor) {
 	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
 }
 
-func (instance *Loan) SetRandomFailureDate() int {
-	startDate := helpers.ParseStringToDate(instance.StartDate)
-	numberOfMonthsBeforeFailure := rand.Intn(instance.Duration)
-	failureDate := helpers.AddMonthsToDate(startDate, numberOfMonthsBeforeFailure)
-	instance.WillFailOn = failureDate.Format("01/2006")
+func (instance *Loan) SetRandomNumberOfMonthsBeforeFailure() {
+	instance.NumberOfMonthsBeforeFailure = instance.generateRandomNumberWithinDuration()
 	instance.Save()
+}
 
-	return numberOfMonthsBeforeFailure
+func (instance *Loan) WillFail() bool {
+	return instance.NumberOfMonthsBeforeFailure > 0
+}
+
+func (instance *Loan) WillFailOnTime() time.Time {
+	startDate := helpers.ParseStringToDate(instance.StartDate)
+	return helpers.AddMonthsToDate(startDate, instance.NumberOfMonthsBeforeFailure)
+}
+
+func (instance *Loan) WillFailOnString() string {
+	failureDate := instance.WillFailOnTime()
+	return failureDate.Format("01/2006")
+}
+
+func (instance *Loan) SetBorrowerMonthlyIncomes() {
+	montlyIncomes := instance.calculateRequiredMontlyIncomes()
+	instance.Borrower.UpdateMontlyIncomes(montlyIncomes)
+}
+
+func (instance *Loan) calculateRequiredMontlyIncomes() float64 {
+	if instance.WillFail() {
+		amountToRefundUntilFailure := instance.monthlyPaymentDue() * float64(instance.NumberOfMonthsBeforeFailure)
+		totalIncomesUntilFailure := amountToRefundUntilFailure - instance.Borrower.Balance
+		return totalIncomesUntilFailure / float64(instance.NumberOfMonthsBeforeFailure)
+	}
+
+	return instance.monthlyPaymentDue()
 }
 
 func (instance *Loan) Print() {
 	fmt.Printf("\n---[ LOAN #%s ]---\n", strconv.Itoa(int(instance.ID)))
-	fmt.Printf("- Duration: %s months, from %s to %s\n", strconv.Itoa(instance.Duration), instance.StartDate, instance.EndDate)
+	fmt.Printf("- Duration: %s months, from %s to %s\n", strconv.Itoa(instance.Duration), instance.StartDate, instance.EndDate())
 	fmt.Printf("- Amount: %1.2f € \n", instance.Amount)
 	fmt.Printf("- Refunded amount: %1.2f €\n", instance.RefundedAmount)
-	fmt.Printf("- Credit cost: %1.2f € (%1.2f %%)\n", instance.CreditCost(), instance.CreditRate*100)
-	fmt.Printf("- Insurance cost: %1.2f € (%1.2f %%)\n", instance.InsuranceCost(), instance.InsuranceRate*100)
-	fmt.Printf("- Loan cost: %1.2f €\n", instance.LoanCost())
+	fmt.Printf("- Credit cost: %1.2f € (%1.2f %%)\n", instance.totalCreditCost(), instance.CreditRate*100)
+	fmt.Printf("- Insurance cost: %1.2f € (%1.2f %%)\n", instance.totalInsuranceCost(), instance.InsuranceRate*100)
+	fmt.Printf("- Loan cost: %1.2f €\n", instance.totalLoanCost())
 
 	willFailText := "No"
-	if instance.WillFailOn != "" {
-		willFailText = fmt.Sprintf("Yes, on %s", instance.WillFailOn)
+	if instance.WillFail() {
+		willFailText = fmt.Sprintf("Yes, on %s", instance.WillFailOnString())
 	}
 	fmt.Println("- Will fail?", willFailText)
 
@@ -117,16 +143,28 @@ func (instance *Loan) Refund(amount float64) {
 	instance.Save()
 }
 
-func (instance *Loan) CreditCost() float64 {
+func (instance *Loan) totalCreditCost() float64 {
 	return (instance.MonthlyCredit*float64(instance.Duration) - instance.Amount)
 }
 
-func (instance *Loan) InsuranceCost() float64 {
+func (instance *Loan) totalInsuranceCost() float64 {
 	return instance.MonthlyInsurance * float64(instance.Duration)
 }
 
-func (instance *Loan) LoanCost() float64 {
-	return instance.CreditCost() + instance.InsuranceCost()
+func (instance *Loan) monthlyPaymentDue() float64 {
+	return instance.MonthlyCredit + instance.MonthlyInsurance
+}
+
+func (instance *Loan) totalLoanCost() float64 {
+	return instance.totalCreditCost() + instance.totalInsuranceCost()
+}
+
+func (instance *Loan) refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
+}
+
+func (instance *Loan) generateRandomNumberWithinDuration() int {
+	return rand.Intn(instance.Duration)
 }
 
 // ------- Package methods -------
@@ -151,14 +189,12 @@ func NewDefaultLoan() *Loan {
 	insuranceRate := configs.General.InsuranceInterestRate
 
 	initialDeposit := configs.Loan.SecurityDepositRate * float64(amount)
-	monthlyCredit := CalculateMonthlyCreditPayment(creditRate, duration, amount)
-	monthlyInsurance := CalculateMonthlyInsurancePayment(insuranceRate, amount)
-	endDate := helpers.TimeDateToString(helpers.AddMonthsToDate(helpers.ParseStringToDate(startDate), duration))
+	monthlyCredit := calculateMonthlyCreditPayment(creditRate, duration, amount)
+	monthlyInsurance := calculateMonthlyInsurancePayment(insuranceRate, amount)
 
 	return &Loan{
 		StartDate:        startDate,
 		Duration:         configs.Loan.DefaultDuration,
-		EndDate:          endDate,
 		Amount:           configs.Loan.DefaultAmount,
 		InitialDeposit:   initialDeposit,
 		CreditRate:       creditRate,
@@ -175,10 +211,10 @@ func CreateEmptyLoan() *Loan {
 	return loan
 }
 
-func CalculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount float64) float64 {
+func calculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount float64) float64 {
 	return gofin.PMT(interestCreditRate/12, float64(duration), float64(-amount), 0, 0)
 }
 
-func CalculateMonthlyInsurancePayment(interestInsuranceRate float64, amount float64) float64 {
+func calculateMonthlyInsurancePayment(interestInsuranceRate float64, amount float64) float64 {
 	return (float64(interestInsuranceRate) * float64(amount) / 100) / 12
 }

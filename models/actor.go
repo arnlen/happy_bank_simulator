@@ -16,6 +16,7 @@ type Actor struct {
 	Loans          []*Loan `gorm:"many2many:loan_actors;"`
 	InitialBalance float64
 	Balance        float64
+	MonthlyIncomes float64
 	Type           string
 }
 
@@ -68,25 +69,27 @@ func (instance *Actor) UpdateBalance(amount float64) {
 	instance.Save()
 }
 
+func (instance *Actor) UpdateMontlyIncomes(amount float64) {
+	// if instance.Type != configs.Actor.BorrowerString {
+	// 	log.Fatalf("Tried to call UpdateMontlyIncomes on %s #%s (not a borrower)\n",
+	// 		instance.Type, strconv.Itoa(int(instance.ID)))
+	// }
+
+	instance.MonthlyIncomes = amount
+	instance.Save()
+}
+
 func (instance *Actor) GetID() uint {
 	return instance.ID
 }
 
 // ------- Package methods -------
 
-func FindActor(actorType string, id int) *Actor {
-	var actor Actor
-	database.GetDB().Preload(clause.Associations).Where("type = ?", actorType).First(&actor, id)
-	return &actor
-}
-
 func ListActors(actorType string) []*Actor {
 	var actors []*Actor
 	database.GetDB().Preload(clause.Associations).Where("type = ?", actorType).Find(&actors)
 	return actors
 }
-
-// TODO: Next here: convert this copy/pasted methods from Actor to Actor
 
 func ListActorsWithPositiveBalance(actorType string) []*Actor {
 	actors := ListActors(actorType)
@@ -110,7 +113,6 @@ func ListActorsWithoutLoan(actorType string) []*Actor {
 	return availableActorsWithoutLoan
 }
 
-// Duplicate with Insurer: same method
 func ListActorsWithLoanOtherThan(actorType string, loan *Loan) []*Actor {
 	actors := ListActorsWithoutLoan(actorType)
 	var availableActorsWithLoan []*Actor
@@ -127,7 +129,24 @@ func ListActorsWithLoanOtherThan(actorType string, loan *Loan) []*Actor {
 	return availableActorsWithLoan
 }
 
-func NewActor(actorType string, name string, balance float64) *Actor {
+func CreateActor(actorType string, name string, balance float64) *Actor {
+	actor := newActor(actorType, name, balance)
+	result := database.GetDB().Create(&actor)
+
+	if actor.ID == 0 || result.RowsAffected == 0 {
+		log.Fatal(result.Error)
+	}
+
+	return actor
+}
+
+func CreateDefaultActor(actorType string) *Actor {
+	actor := newDefaultActor(actorType)
+	actor.Save()
+	return actor
+}
+
+func newActor(actorType string, name string, balance float64) *Actor {
 	return &Actor{
 		Name:    name,
 		Loans:   []*Loan{},
@@ -136,7 +155,7 @@ func NewActor(actorType string, name string, balance float64) *Actor {
 	}
 }
 
-func NewDefaultActor(actorType string) *Actor {
+func newDefaultActor(actorType string) *Actor {
 	return &Actor{
 		Name:           faker.Name().Name(),
 		Loans:          []*Loan{},
@@ -144,23 +163,6 @@ func NewDefaultActor(actorType string) *Actor {
 		Balance:        configs.Actor.InitialBalance,
 		Type:           actorType,
 	}
-}
-
-func CreateDefaultActor(actorType string) *Actor {
-	actor := NewDefaultActor(actorType)
-	actor.Save()
-	return actor
-}
-
-func CreateActor(actorType string, name string, balance float64) *Actor {
-	actor := NewActor(actorType, name, balance)
-	result := database.GetDB().Create(&actor)
-
-	if actor.ID == 0 || result.RowsAffected == 0 {
-		log.Fatal(result.Error)
-	}
-
-	return actor
 }
 
 func isActorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {

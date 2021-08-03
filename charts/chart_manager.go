@@ -60,7 +60,6 @@ func (instance *ChartsManager) UpdateChartFor(actors []*models.Actor, month stri
 			instance.AddChartToList(actorChart)
 		}
 		actorChart.AddItem(month, actor.Balance)
-		actorChart.Print()
 	}
 }
 

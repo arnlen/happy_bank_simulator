@@ -20,6 +20,13 @@ func Prepare() {
 
 	for index, loan := range loans {
 		assignBorrowerToLoan(borrowers[index], loan)
+
+		loan.SetBorrowerMonthlyIncomes()
+		fmt.Printf("🪙 Borrower %s's monthly incomes set to %1.2f.\n",
+			strconv.Itoa(int(loan.BorrowerID)),
+			loan.Borrower.MonthlyIncomes,
+		)
+
 		setupLendersForLoan(loan)
 
 		if loan.IsInsured {
@@ -56,7 +63,9 @@ func Run() {
 		fmt.Println(len(loans), "active loans")
 
 		for _, loan := range loans {
-			loanEndDate := helpers.ParseStringToDate(loan.EndDate)
+			loan.Print()
+
+			loanEndDate := helpers.ParseStringToDate(loan.EndDate())
 			borrower := loan.Borrower
 			lenders := loan.Lenders
 			quantityOfLenders := len(lenders)
@@ -69,7 +78,10 @@ func Run() {
 			chartsManager.UpdateChartFor(lenders, monthString)
 			chartsManager.UpdateChartFor(insurers, monthString)
 
-			loan.Print()
+			// ------- Borrower monthly incomes -------
+			fmt.Printf("🤑 Borrower #%s got paid %1.2f €!\n",
+				strconv.Itoa(int(loan.BorrowerID)), borrower.MonthlyIncomes)
+			models.CreateIncomeTransaction(borrower, borrower.MonthlyIncomes).Print()
 
 			if currentDate.After(loanEndDate) {
 				fmt.Printf("Loan #%s is over. ✅\n", strconv.Itoa(int(loan.ID)))
@@ -78,8 +90,8 @@ func Run() {
 				continue
 			}
 
-			if loan.WillFailOn != "" {
-				failureDate := helpers.ParseStringToDate(loan.WillFailOn)
+			if loan.WillFail() {
+				failureDate := loan.WillFailOnTime()
 
 				if currentDate.After(failureDate) {
 					fmt.Printf("Loan #%s just fails this month. ❌\n", strconv.Itoa(int(loan.ID)))

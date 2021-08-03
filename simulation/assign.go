@@ -11,8 +11,11 @@ func assignBorrowerToLoan(borrower *models.Actor, loan *models.Loan) {
 	loan.Borrower = *borrower
 	loan.Save()
 	borrower.Refresh()
-	fmt.Printf("Borrower assigned: Loan #%s's borrower = #%s\n", strconv.Itoa(int(loan.ID)), strconv.Itoa(int(loan.BorrowerID)))
-	fmt.Printf("Borrower #%s has now %s loans\n", strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(len(borrower.Loans))))
+
+	fmt.Printf("Borrower #%s assigned to Loan #%s\n",
+		strconv.Itoa(int(borrower.ID)), strconv.Itoa(int(loan.ID)))
+	fmt.Printf("Borrower #%s has now %s loan(s)\n",
+		strconv.Itoa(int(borrower.ID)), strconv.Itoa(len(borrower.Loans)))
 }
 
 func assignLendersToLoan(lenders []*models.Actor, loan *models.Loan) {

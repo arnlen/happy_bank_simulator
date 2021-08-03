@@ -19,15 +19,10 @@ type Transaction struct {
 	ReceiverType string
 	ReceiverID   int
 	Amount       float64
-	isDeposit    bool
 }
 
 func (instance *Transaction) ModelName() string {
 	return "transaction"
-}
-
-func (instance *Transaction) Refresh() {
-	database.GetDB().Preload(clause.Associations).Find(&instance)
 }
 
 func (instance *Transaction) Save() {
@@ -37,7 +32,37 @@ func (instance *Transaction) Save() {
 		log.Fatal(result.Error)
 	}
 
-	instance.Refresh()
+	instance.refresh()
+}
+
+func (instance *Transaction) Print() {
+	instance.refresh()
+
+	sender := "INCOMES"
+	if instance.SenderID != 0 {
+		sender = fmt.Sprintf("%s #%s",
+			strings.Title(instance.SenderType),
+			strconv.Itoa(int(instance.SenderID)),
+		)
+	}
+
+	receiver := "DEPOSIT"
+	if instance.ReceiverID != 0 {
+		receiver = fmt.Sprintf("%s #%s",
+			strings.Title(instance.ReceiverType),
+			strconv.Itoa(int(instance.ReceiverID)),
+		)
+	}
+
+	fmt.Printf("🔁 Transaction #%s: [%s] == %1.2f € ==> [%s]\n",
+		strconv.Itoa(int(instance.ID)),
+		sender,
+		instance.Amount,
+		receiver)
+}
+
+func (instance *Transaction) refresh() {
+	database.GetDB().Preload(clause.Associations).Find(&instance)
 }
 
 // ------- Package methods -------
@@ -58,54 +83,38 @@ func CreateTransaction(sender Actor, receiver Actor, amount float64) *Transactio
 		ReceiverID:   int(receiver.GetID()),
 		ReceiverType: receiver.Type,
 		Amount:       amount,
-		isDeposit:    false,
 	}
 
 	transaction.Save()
 	return transaction
 }
 
-func NewDepositTransaction(borrower Actor, amount float64) *Transaction {
+func CreateDepositTransaction(borrower Actor, amount float64) *Transaction {
 	borrower.UpdateBalance(-amount)
 
-	return &Transaction{
+	depositTransaction := &Transaction{
 		SenderID:     int(borrower.GetID()),
 		SenderType:   borrower.Type,
-		ReceiverType: "deposit",
 		ReceiverID:   0,
+		ReceiverType: "deposit",
 		Amount:       amount,
-		isDeposit:    true,
 	}
-}
 
-func CreateDepositTransaction(borrower Actor, amount float64) *Transaction {
-	depositTransaction := NewDepositTransaction(borrower, amount)
 	depositTransaction.Save()
 	return depositTransaction
 }
 
-func (instance *Transaction) Create() *gorm.DB {
-	return database.GetDB().Create(instance)
-}
+func CreateIncomeTransaction(borrower Actor, amount float64) *Transaction {
+	borrower.UpdateBalance(amount)
 
-func (instance *Transaction) Print() {
-	sender := fmt.Sprintf("%s #%s",
-		strings.Title(instance.SenderType),
-		strconv.Itoa(int(instance.SenderID)),
-	)
-
-	receiver := "DEPOSIT ADDRESS"
-
-	if instance.ReceiverType != "deposit" {
-		receiver = fmt.Sprintf("%s #%s",
-			strings.Title(instance.ReceiverType),
-			strconv.Itoa(int(instance.ReceiverID)),
-		)
+	incomeTransaction := &Transaction{
+		SenderID:     0,
+		SenderType:   "income",
+		ReceiverID:   int(borrower.GetID()),
+		ReceiverType: borrower.Type,
+		Amount:       amount,
 	}
 
-	fmt.Printf("🔁 Transaction #%s: [%s] == %1.2f € ==> [%s]\n",
-		strconv.Itoa(int(instance.ID)),
-		sender,
-		instance.Amount,
-		receiver)
+	incomeTransaction.Save()
+	return incomeTransaction
 }
