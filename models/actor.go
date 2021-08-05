@@ -1,10 +1,11 @@
 package models
 
 import (
-	"happy_bank_simulator/app/configs"
-	"happy_bank_simulator/database"
 	"log"
 	"strconv"
+
+	"happy_bank_simulator/app/configs"
+	"happy_bank_simulator/internal/global"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -24,11 +25,11 @@ type Actor struct {
 // ------- Instance methods -------
 
 func (instance *Actor) Refresh() {
-	database.GetDB().Preload(clause.Associations).Find(&instance)
+	global.Db.Preload(clause.Associations).Find(&instance)
 }
 
 func (instance *Actor) Save() {
-	result := database.GetDB().Save(instance)
+	result := global.Db.Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
@@ -50,7 +51,6 @@ func (instance *Actor) GetNetBalance() float64 {
 	return netBalance
 }
 
-// TODO: refactor using double return, including error. See Go time package for example
 func (instance *Actor) GetTotalAmountBorrowed() float64 {
 	if instance.Type != configs.Actor.BorrowerString {
 		log.Fatal("This actor is not a borrower")
@@ -84,11 +84,25 @@ func (instance *Actor) GetID() uint {
 	return instance.ID
 }
 
+func (instance *Actor) AssignLoan(loan *Loan) {
+	instance.Loans = append(instance.Loans, loan)
+	instance.Save()
+
+	switch instance.Type {
+	case "borrower":
+		loan.AssignBorrower(instance)
+	case "insurer":
+		loan.AssignInsurer(instance)
+	case "lender":
+		loan.AssignLender(instance)
+	}
+}
+
 // ------- Package methods -------
 
 func ListActors(actorType string) []*Actor {
 	var actors []*Actor
-	database.GetDB().Preload(clause.Associations).Where("type = ?", actorType).Find(&actors)
+	global.Db.Preload(clause.Associations).Where("type = ?", actorType).Find(&actors)
 	return actors
 }
 
@@ -132,7 +146,7 @@ func ListActorsWithLoanOtherThan(actorType string, loan *Loan) []*Actor {
 
 func CreateActor(actorType string, name string, balance float64) *Actor {
 	actor := newActor(actorType, name, balance)
-	result := database.GetDB().Create(&actor)
+	result := global.Db.Create(&actor)
 
 	if actor.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
@@ -142,7 +156,7 @@ func CreateActor(actorType string, name string, balance float64) *Actor {
 }
 
 func CreateDefaultActor(actorType string) *Actor {
-	actor := newDefaultActor(actorType)
+	actor := NewDefaultActor(actorType)
 	actor.Save()
 	return actor
 }
@@ -156,7 +170,7 @@ func newActor(actorType string, name string, balance float64) *Actor {
 	}
 }
 
-func newDefaultActor(actorType string) *Actor {
+func NewDefaultActor(actorType string) *Actor {
 	return &Actor{
 		Name:           faker.Name().Name(),
 		Loans:          []*Loan{},

@@ -3,11 +3,8 @@ package overview
 import (
 	"fmt"
 
-	"happy_bank_simulator/database"
-	databaseHelpers "happy_bank_simulator/database/helpers"
+	"happy_bank_simulator/internal/database"
 	"happy_bank_simulator/models"
-
-	"gorm.io/gorm/clause"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -87,17 +84,10 @@ func updateCounters(counters []int) {
 }
 
 func getCounters() []int {
-	db := database.GetDB()
-
-	var borrowers []models.Actor
-	var lenders []models.Actor
-	var insurers []models.Actor
-	var loans []models.Loan
-
-	db.Preload(clause.Associations).Find(&borrowers)
-	db.Preload(clause.Associations).Find(&lenders)
-	db.Preload(clause.Associations).Find(&insurers)
-	db.Preload(clause.Associations).Find(&loans)
+	borrowers := models.ListActors("borrower")
+	lenders := models.ListActors("lender")
+	insurers := models.ListActors("insurer")
+	loans := models.ListActors("loan")
 
 	return []int{len(borrowers), len(lenders), len(insurers), len(loans)}
 }
@@ -107,10 +97,5 @@ func populateDatabase() {
 }
 
 func wipeDatabase() {
-	databaseHelpers.DropBD()
-	fmt.Println("Database dropped")
-	database.InitDB()
-	fmt.Println("Database initialized")
-	databaseHelpers.MigrateDB()
-	fmt.Println("Database migrated")
+	database.ResetDB()
 }

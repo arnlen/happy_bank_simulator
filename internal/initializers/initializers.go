@@ -1,9 +1,12 @@
-package database
+package initializers
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
+
+	"happy_bank_simulator/internal/global"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -26,16 +29,14 @@ func InitDB() *gorm.DB {
 		},
 	)
 
-	db, err = gorm.Open(sqlite.Open("database/happy_dev.db"), &gorm.Config{
+	databasePath := fmt.Sprintf("%s/database/happy_dev.db", global.ProjectPath)
+	db, err = gorm.Open(sqlite.Open(databasePath), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return db
-}
-
-func GetDB() *gorm.DB {
+	fmt.Println("Database initialized")
 	return db
 }

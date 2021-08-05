@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"happy_bank_simulator/database"
+	"happy_bank_simulator/internal/global"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -26,7 +26,7 @@ func (instance *Transaction) ModelName() string {
 }
 
 func (instance *Transaction) Save() {
-	result := database.GetDB().Save(instance)
+	result := global.Db.Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
@@ -62,14 +62,14 @@ func (instance *Transaction) Print() {
 }
 
 func (instance *Transaction) refresh() {
-	database.GetDB().Preload(clause.Associations).Find(&instance)
+	global.Db.Preload(clause.Associations).Find(&instance)
 }
 
 // ------- Package methods -------
 
 func ListTransactions() []*Transaction {
 	var transactions []*Transaction
-	database.GetDB().Preload(clause.Associations).Find(&transactions)
+	global.Db.Preload(clause.Associations).Find(&transactions)
 	return transactions
 }
 

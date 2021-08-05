@@ -6,14 +6,15 @@ import (
 
 	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/charts"
-	databaseHelpers "happy_bank_simulator/database/helpers"
+	"happy_bank_simulator/internal/database"
+
 	"happy_bank_simulator/helpers"
 	"happy_bank_simulator/models"
 )
 
 func Prepare() {
-	databaseHelpers.DropBD()
-	databaseHelpers.MigrateDB()
+	database.DropBD()
+	database.MigrateDB()
 
 	loans := createInitialLoans()
 	borrowers := createBorrowersForLoans(loans)

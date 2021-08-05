@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"happy_bank_simulator/app/configs"
-	"happy_bank_simulator/database"
 	"happy_bank_simulator/helpers"
+	"happy_bank_simulator/internal/global"
 
 	"github.com/drum445/gofin"
 	"gorm.io/gorm"
@@ -49,21 +49,25 @@ func (instance *Loan) EndDate() string {
 }
 
 func (instance *Loan) Save() {
-	result := database.GetDB().Save(instance)
+	result := global.Db.Save(instance)
 
 	if instance.ID == 0 || result.RowsAffected == 0 {
 		log.Fatal(result.Error)
 	}
 
-	instance.refresh()
+	instance.Refresh()
+}
+
+func (instance *Loan) Refresh() {
+	global.Db.Preload(clause.Associations).Find(&instance)
 }
 
 func (instance *Loan) AddLender(lender *Actor) {
-	database.GetDB().Model(&instance).Association("Lenders").Append(lender)
+	global.Db.Model(&instance).Association("Lenders").Append(lender)
 }
 
 func (instance *Loan) AddInsurer(insurer *Actor) {
-	database.GetDB().Model(&instance).Association("Insurers").Append(insurer)
+	global.Db.Model(&instance).Association("Insurers").Append(insurer)
 }
 
 func (instance *Loan) SetRandomNumberOfMonthsBeforeFailure() {
@@ -88,6 +92,19 @@ func (instance *Loan) WillFailOnString() string {
 func (instance *Loan) SetBorrowerMonthlyIncomes() {
 	montlyIncomes := instance.calculateRequiredMontlyIncomes()
 	instance.Borrower.UpdateMontlyIncomes(montlyIncomes)
+}
+
+func (instance *Loan) AssignBorrower(borrower *Actor) {
+	instance.Borrower = *borrower
+	instance.Save()
+}
+
+func (instance *Loan) AssignLender(lender *Actor) {
+	// TODO
+}
+
+func (instance *Loan) AssignInsurer(insurer *Actor) {
+	// TODO
 }
 
 func (instance *Loan) calculateRequiredMontlyIncomes() float64 {
@@ -159,10 +176,6 @@ func (instance *Loan) totalLoanCost() float64 {
 	return instance.totalCreditCost() + instance.totalInsuranceCost()
 }
 
-func (instance *Loan) refresh() {
-	database.GetDB().Preload(clause.Associations).Find(&instance)
-}
-
 func (instance *Loan) generateRandomNumberWithinDuration() int {
 	return rand.Intn(instance.Duration)
 }
@@ -171,13 +184,13 @@ func (instance *Loan) generateRandomNumberWithinDuration() int {
 
 func ListLoans() []Loan {
 	var loans []Loan
-	database.GetDB().Preload(clause.Associations).Find(&loans)
+	global.Db.Preload(clause.Associations).Find(&loans)
 	return loans
 }
 
 func ListActiveLoans() []Loan {
 	var loans []Loan
-	database.GetDB().Preload(clause.Associations).Where("is_active = ?", true).Find(&loans)
+	global.Db.Preload(clause.Associations).Where("is_active = ?", true).Find(&loans)
 	return loans
 }
 

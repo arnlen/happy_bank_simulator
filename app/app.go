@@ -11,8 +11,7 @@ import (
 	"happy_bank_simulator/app/lenders"
 	"happy_bank_simulator/app/loans"
 	"happy_bank_simulator/app/transactions"
-	"happy_bank_simulator/database"
-	databaseHelpers "happy_bank_simulator/database/helpers"
+	"happy_bank_simulator/internal/database"
 	"happy_bank_simulator/simulation"
 
 	"fyne.io/fyne/v2"
@@ -81,10 +80,5 @@ func renderSimulationResultsWindow() {
 }
 
 func wipeDatabase() {
-	databaseHelpers.DropBD()
-	fmt.Println("Database dropped")
-	database.InitDB()
-	fmt.Println("Database initialized")
-	databaseHelpers.MigrateDB()
-	fmt.Println("Database migrated")
+	database.ResetDB()
 }
