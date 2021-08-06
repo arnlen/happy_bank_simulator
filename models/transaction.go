@@ -21,10 +21,6 @@ type Transaction struct {
 	Amount       float64
 }
 
-func (instance *Transaction) ModelName() string {
-	return "transaction"
-}
-
 func (instance *Transaction) Save() {
 	result := global.Db.Save(instance)
 
@@ -32,23 +28,27 @@ func (instance *Transaction) Save() {
 		log.Fatal(result.Error)
 	}
 
-	instance.refresh()
+	instance.Refresh()
+}
+
+func (instance *Transaction) Refresh() {
+	global.Db.Preload(clause.Associations).Find(&instance)
 }
 
 func (instance *Transaction) Print() {
-	instance.refresh()
+	instance.Refresh()
 
-	sender := "INCOMES"
+	senderString := "INCOMES"
 	if instance.SenderID != 0 {
-		sender = fmt.Sprintf("%s #%s",
+		senderString = fmt.Sprintf("%s #%s",
 			strings.Title(instance.SenderType),
 			strconv.Itoa(int(instance.SenderID)),
 		)
 	}
 
-	receiver := "DEPOSIT"
+	receiverString := "DEPOSIT"
 	if instance.ReceiverID != 0 {
-		receiver = fmt.Sprintf("%s #%s",
+		receiverString = fmt.Sprintf("%s #%s",
 			strings.Title(instance.ReceiverType),
 			strconv.Itoa(int(instance.ReceiverID)),
 		)
@@ -56,13 +56,9 @@ func (instance *Transaction) Print() {
 
 	fmt.Printf("🔁 Transaction #%s: [%s] == %1.2f € ==> [%s]\n",
 		strconv.Itoa(int(instance.ID)),
-		sender,
+		senderString,
 		instance.Amount,
-		receiver)
-}
-
-func (instance *Transaction) refresh() {
-	global.Db.Preload(clause.Associations).Find(&instance)
+		receiverString)
 }
 
 // ------- Package methods -------
@@ -78,9 +74,9 @@ func CreateTransaction(sender Actor, receiver Actor, amount float64) *Transactio
 	receiver.UpdateBalance(amount)
 
 	transaction := &Transaction{
-		SenderID:     int(sender.GetID()),
+		SenderID:     int(sender.ID),
 		SenderType:   sender.Type,
-		ReceiverID:   int(receiver.GetID()),
+		ReceiverID:   int(receiver.ID),
 		ReceiverType: receiver.Type,
 		Amount:       amount,
 	}
@@ -93,7 +89,7 @@ func CreateDepositTransaction(borrower Actor, amount float64) *Transaction {
 	borrower.UpdateBalance(-amount)
 
 	depositTransaction := &Transaction{
-		SenderID:     int(borrower.GetID()),
+		SenderID:     int(borrower.ID),
 		SenderType:   borrower.Type,
 		ReceiverID:   0,
 		ReceiverType: "deposit",
@@ -110,7 +106,7 @@ func CreateIncomeTransaction(borrower Actor, amount float64) *Transaction {
 	incomeTransaction := &Transaction{
 		SenderID:     0,
 		SenderType:   "income",
-		ReceiverID:   int(borrower.GetID()),
+		ReceiverID:   int(borrower.ID),
 		ReceiverType: borrower.Type,
 		Amount:       amount,
 	}

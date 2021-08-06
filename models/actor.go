@@ -24,10 +24,6 @@ type Actor struct {
 
 // ------- Instance methods -------
 
-func (instance *Actor) Refresh() {
-	global.Db.Preload(clause.Associations).Find(&instance)
-}
-
 func (instance *Actor) Save() {
 	result := global.Db.Save(instance)
 
@@ -36,6 +32,10 @@ func (instance *Actor) Save() {
 	}
 
 	instance.Refresh()
+}
+
+func (instance *Actor) Refresh() {
+	global.Db.Preload(clause.Associations).Find(&instance)
 }
 
 func (instance *Actor) GetNetBalance() float64 {
@@ -80,10 +80,6 @@ func (instance *Actor) UpdateMontlyIncomes(amount float64) {
 	instance.Save()
 }
 
-func (instance *Actor) GetID() uint {
-	return instance.ID
-}
-
 func (instance *Actor) AssignLoan(loan *Loan) {
 	instance.Loans = append(instance.Loans, loan)
 	instance.Save()
@@ -96,6 +92,31 @@ func (instance *Actor) AssignLoan(loan *Loan) {
 	case "lender":
 		loan.AssignLender(instance)
 	}
+}
+
+func (instance *Actor) CanTakeThisLoan(loan Loan) bool {
+	// BORROWER
+	// => NetBalance > ratio
+
+	// LENDER
+	// => NetBalance > loan.amount / qtyOfLenders
+
+	// LENDER
+	// => NetBalance > loan.amount / qtyOfInsurers
+
+	return false
+}
+
+func (instance *Actor) isBorrower() bool {
+	return instance.Type == configs.Actor.BorrowerString
+}
+
+func (instance *Actor) isLender() bool {
+	return instance.Type == configs.Actor.LenderString
+}
+
+func (instance *Actor) isInsurer() bool {
+	return instance.Type == configs.Actor.InsurerString
 }
 
 // ------- Package methods -------
@@ -144,6 +165,15 @@ func ListActorsWithLoanOtherThan(actorType string, loan *Loan) []*Actor {
 	return availableActorsWithLoan
 }
 
+func newActor(actorType string, name string, balance float64) *Actor {
+	return &Actor{
+		Name:    name,
+		Loans:   []*Loan{},
+		Balance: balance,
+		Type:    actorType,
+	}
+}
+
 func CreateActor(actorType string, name string, balance float64) *Actor {
 	actor := newActor(actorType, name, balance)
 	result := global.Db.Create(&actor)
@@ -155,22 +185,7 @@ func CreateActor(actorType string, name string, balance float64) *Actor {
 	return actor
 }
 
-func CreateDefaultActor(actorType string) *Actor {
-	actor := NewDefaultActor(actorType)
-	actor.Save()
-	return actor
-}
-
-func newActor(actorType string, name string, balance float64) *Actor {
-	return &Actor{
-		Name:    name,
-		Loans:   []*Loan{},
-		Balance: balance,
-		Type:    actorType,
-	}
-}
-
-func NewDefaultActor(actorType string) *Actor {
+func newDefaultActor(actorType string) *Actor {
 	return &Actor{
 		Name:           faker.Name().Name(),
 		Loans:          []*Loan{},
@@ -178,6 +193,12 @@ func NewDefaultActor(actorType string) *Actor {
 		Balance:        configs.Actor.InitialBalance,
 		Type:           actorType,
 	}
+}
+
+func CreateDefaultActor(actorType string) *Actor {
+	actor := newDefaultActor(actorType)
+	actor.Save()
+	return actor
 }
 
 func isActorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {

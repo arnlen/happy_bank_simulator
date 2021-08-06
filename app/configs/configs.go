@@ -67,7 +67,7 @@ var Actor = actor{
 	InsurerString:                "insurer",
 }
 
-// ----- LOAN CONFIGS -----
+// ----- TRANSACTION CONFIGS -----
 
 type transaction struct {
 	String string

@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -38,10 +39,6 @@ type Loan struct {
 
 // ------- Instance methods -------
 
-func (instance *Loan) ModelName() string {
-	return "loan"
-}
-
 func (instance *Loan) EndDate() string {
 	startDate := helpers.ParseStringToDate(instance.StartDate)
 	endDate := helpers.AddMonthsToDate(startDate, instance.Duration)
@@ -59,7 +56,7 @@ func (instance *Loan) Save() {
 }
 
 func (instance *Loan) Refresh() {
-	global.Db.Preload(clause.Associations).Find(&instance)
+	global.Db.Preload(clause.Associations).First(&instance, instance.ID)
 }
 
 func (instance *Loan) AddLender(lender *Actor) {
@@ -68,6 +65,20 @@ func (instance *Loan) AddLender(lender *Actor) {
 
 func (instance *Loan) AddInsurer(insurer *Actor) {
 	global.Db.Model(&instance).Association("Insurers").Append(insurer)
+}
+
+func (instance *Loan) Activate() {
+	CreateDepositTransaction(instance.Borrower, instance.InitialDeposit)
+
+	for _, lender := range instance.Lenders {
+		amount := instance.amountPerLender()
+		CreateTransaction(*lender, instance.Borrower, amount)
+		lender.Refresh()
+	}
+
+	instance.IsActive = true
+	instance.Save()
+	instance.Borrower.Refresh()
 }
 
 func (instance *Loan) SetRandomNumberOfMonthsBeforeFailure() {
@@ -90,24 +101,23 @@ func (instance *Loan) WillFailOnString() string {
 }
 
 func (instance *Loan) SetBorrowerMonthlyIncomes() {
-	montlyIncomes := instance.calculateRequiredMontlyIncomes()
+	montlyIncomes := instance.RequiredMontlyIncomes()
 	instance.Borrower.UpdateMontlyIncomes(montlyIncomes)
 }
 
 func (instance *Loan) AssignBorrower(borrower *Actor) {
 	instance.Borrower = *borrower
-	instance.Save()
 }
 
 func (instance *Loan) AssignLender(lender *Actor) {
-	// TODO
+	instance.Lenders = append(instance.Lenders, lender)
 }
 
 func (instance *Loan) AssignInsurer(insurer *Actor) {
-	// TODO
+	instance.Insurers = append(instance.Insurers, insurer)
 }
 
-func (instance *Loan) calculateRequiredMontlyIncomes() float64 {
+func (instance *Loan) RequiredMontlyIncomes() float64 {
 	if instance.WillFail() {
 		amountToRefundUntilFailure := instance.monthlyPaymentDue() * float64(instance.NumberOfMonthsBeforeFailure)
 		totalIncomesUntilFailure := amountToRefundUntilFailure - instance.Borrower.Balance
@@ -115,6 +125,28 @@ func (instance *Loan) calculateRequiredMontlyIncomes() float64 {
 	}
 
 	return instance.monthlyPaymentDue()
+}
+
+func (instance *Loan) lenderQuantityRequired() int {
+	quantity := int(math.Ceil(instance.Amount / configs.Actor.MaxAmountPerLoan))
+	fmt.Printf("%s lenders are required\n", strconv.Itoa(quantity))
+	return quantity
+}
+
+func (instance *Loan) insurerQuantityRequired() int {
+	quantity := int(math.Ceil(instance.Amount / configs.Actor.MaxAmountPerLoan))
+	fmt.Printf("%s insurers are required\n", strconv.Itoa(quantity))
+	return quantity
+}
+
+func (instance *Loan) amountPerLender() float64 {
+	amount := instance.Amount / float64(instance.lenderQuantityRequired())
+	fmt.Printf("%1.2f €/lender.\n", amount)
+	return amount
+}
+
+func (instance *Loan) amountPerInsurer() float64 {
+	return instance.Amount / float64(instance.insurerQuantityRequired())
 }
 
 func (instance *Loan) Print() {
@@ -194,7 +226,7 @@ func ListActiveLoans() []Loan {
 	return loans
 }
 
-func NewDefaultLoan() *Loan {
+func newDefaultLoan() *Loan {
 	amount := configs.Loan.DefaultAmount
 	startDate := configs.General.StartDate
 	duration := configs.Loan.DefaultDuration
@@ -214,12 +246,12 @@ func NewDefaultLoan() *Loan {
 		InsuranceRate:    insuranceRate,
 		MonthlyCredit:    monthlyCredit,
 		MonthlyInsurance: monthlyInsurance,
-		IsActive:         true,
+		IsActive:         false,
 	}
 }
 
-func CreateEmptyLoan() *Loan {
-	var loan = NewDefaultLoan()
+func CreateDefaultLoan() *Loan {
+	var loan = newDefaultLoan()
 	loan.Save()
 	return loan
 }
