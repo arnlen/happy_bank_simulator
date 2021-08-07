@@ -22,6 +22,15 @@ func TestActor_GetNetBalance(t *testing.T) {
 	assert.Equal(insurerWithLoan.GetNetBalance(), insurerWithLoan.Balance)
 }
 
+func TestActor_GetTotalAmountBorrowed(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	borrowerWithLoan := factories.NewBorrowerWithLoan()
+
+	assert.Equal(borrowerWithLoan.GetTotalAmountBorrowed(), borrowerWithLoan.Loans[0].Amount)
+}
+
 func TestActorFactory_UpdateBalance(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)

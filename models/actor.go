@@ -39,20 +39,15 @@ func (instance *Actor) Refresh() {
 }
 
 func (instance *Actor) GetNetBalance() float64 {
-	netBalance := 0.0
-
-	switch instance.Type {
-	case configs.Actor.BorrowerString:
-		netBalance = instance.Balance - instance.GetTotalAmountBorrowed()
-	default:
-		netBalance = instance.Balance
+	if instance.IsBorrower() {
+		return instance.Balance - instance.GetTotalAmountBorrowed()
 	}
 
-	return netBalance
+	return instance.Balance
 }
 
 func (instance *Actor) GetTotalAmountBorrowed() float64 {
-	if instance.Type != configs.Actor.BorrowerString {
+	if !instance.IsBorrower() {
 		log.Fatal("This actor is not a borrower")
 	}
 
@@ -71,7 +66,7 @@ func (instance *Actor) UpdateBalance(amount float64) {
 }
 
 func (instance *Actor) UpdateMontlyIncomes(amount float64) {
-	if instance.Type != configs.Actor.BorrowerString {
+	if !instance.IsBorrower() {
 		log.Fatalf("Tried to call UpdateMontlyIncomes on %s #%s (not a borrower)\n",
 			instance.Type, strconv.Itoa(int(instance.ID)))
 	}
@@ -107,15 +102,15 @@ func (instance *Actor) CanTakeThisLoan(loan Loan) bool {
 	return false
 }
 
-func (instance *Actor) isBorrower() bool {
+func (instance *Actor) IsBorrower() bool {
 	return instance.Type == configs.Actor.BorrowerString
 }
 
-func (instance *Actor) isLender() bool {
+func (instance *Actor) IsLender() bool {
 	return instance.Type == configs.Actor.LenderString
 }
 
-func (instance *Actor) isInsurer() bool {
+func (instance *Actor) IsInsurer() bool {
 	return instance.Type == configs.Actor.InsurerString
 }
 
