@@ -10,6 +10,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestActorFactory_NewBorrower(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	borrower := factories.NewBorrower()
+
+	assert.True(borrower.IsBorrower())
+	assert.Equal(len(borrower.Loans), 0)
+}
+
 func TestActorFactory_NewBorrowerWithLoan(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
@@ -19,6 +29,16 @@ func TestActorFactory_NewBorrowerWithLoan(t *testing.T) {
 	assert.True(borrower.IsBorrower())
 	assert.Equal(len(borrower.Loans), 1)
 	assert.NotEqual(borrower.Loans[0].ID, 0)
+}
+
+func TestActorFactory_NewLender(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	lender := factories.NewLender()
+
+	assert.True(lender.IsLender())
+	assert.Equal(len(lender.Loans), 0)
 }
 
 func TestActorFactory_NewLenderWithLoan(t *testing.T) {
@@ -31,6 +51,16 @@ func TestActorFactory_NewLenderWithLoan(t *testing.T) {
 	assert.Equal(len(lender.Loans), 1)
 	assert.NotEqual(lender.Loans[0].ID, 0)
 	assert.Equal(lender.Loans[0].Amount, configs.Loan.DefaultAmount)
+}
+
+func TestActorFactory_NewInsurer(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	insurer := factories.NewInsurer()
+
+	assert.True(insurer.IsInsurer())
+	assert.Equal(len(insurer.Loans), 0)
 }
 
 func TestActorFactory_NewInsurerWithLoan(t *testing.T) {

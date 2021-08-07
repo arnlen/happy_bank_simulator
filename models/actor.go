@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -38,26 +39,22 @@ func (instance *Actor) Refresh() {
 	global.Db.Preload(clause.Associations).Find(&instance)
 }
 
-func (instance *Actor) GetNetBalance() float64 {
-	if instance.IsBorrower() {
-		return instance.Balance - instance.GetTotalAmountBorrowed()
+func (instance *Actor) NetBalance() float64 {
+	if instance.IsBorrower() || instance.IsInsurer() {
+		return instance.Balance - instance.TotalAmountAssigned()
 	}
 
 	return instance.Balance
 }
 
-func (instance *Actor) GetTotalAmountBorrowed() float64 {
-	if !instance.IsBorrower() {
-		log.Fatal("This actor is not a borrower")
-	}
-
+func (instance *Actor) TotalAmountAssigned() float64 {
 	loans := instance.Loans
-	totalAmoutBorrowed := 0.0
+	totalAmoutAssigned := 0.0
 
 	for _, loan := range loans {
-		totalAmoutBorrowed += loan.Amount
+		totalAmoutAssigned += loan.Amount
 	}
-	return totalAmoutBorrowed
+	return totalAmoutAssigned
 }
 
 func (instance *Actor) UpdateBalance(amount float64) {
@@ -82,24 +79,42 @@ func (instance *Actor) AssignLoan(loan *Loan) {
 	switch instance.Type {
 	case "borrower":
 		loan.AssignBorrower(instance)
-	case "insurer":
-		loan.AssignInsurer(instance)
 	case "lender":
 		loan.AssignLender(instance)
+	case "insurer":
+		loan.AssignInsurer(instance)
 	}
 }
 
 func (instance *Actor) CanTakeThisLoan(loan Loan) bool {
-	// BORROWER
-	// => NetBalance > ratio
+	if instance.IsBorrower() {
+		loans := instance.Loans
+		totalAmountBorrowed := instance.TotalAmountAssigned()
+		fmt.Printf("Borrower #%s has %s loans for a total of %1.2f €\n",
+			strconv.Itoa(int(instance.ID)), strconv.Itoa(len(loans)), totalAmountBorrowed)
 
-	// LENDER
-	// => NetBalance > loan.amount / qtyOfLenders
+		borrowerNetBalance := instance.NetBalance()
+		fmt.Printf("Borrower #%s net balance is %1.2f €\n", strconv.Itoa(int(instance.ID)), borrowerNetBalance)
 
-	// LENDER
-	// => NetBalance > loan.amount / qtyOfInsurers
+		ratio := float64(borrowerNetBalance / loan.Amount)
+		if ratio >= configs.Actor.BorrowerBalanceLeverageRatio {
+			fmt.Printf("Borrower #%s can take the loan #%s\n",
+				strconv.Itoa(int(instance.ID)), strconv.Itoa(int(loan.ID)))
+			return true
+		} else {
+			fmt.Printf("Borrower #%s cannot take the loan #%s: net balance to low\n",
+				strconv.Itoa(int(instance.ID)), strconv.Itoa(int(loan.ID)))
+			return false
+		}
+	}
 
-	return false
+	if instance.IsLender() {
+		amountToLend := loan.AmountPerLender()
+		return instance.NetBalance() >= amountToLend
+	}
+
+	amountToInsure := loan.AmountPerInsurer()
+	return instance.NetBalance() >= amountToInsure
 }
 
 func (instance *Actor) IsBorrower() bool {
@@ -118,7 +133,7 @@ func (instance *Actor) IsInsurer() bool {
 
 func ListActors(actorType string) []*Actor {
 	var actors []*Actor
-	global.Db.Preload(clause.Associations).Where("type = ?", actorType).Find(&actors)
+	global.Db.Preload(clause.Associations).Where("Type = ?", actorType).Find(&actors)
 	return actors
 }
 
@@ -134,30 +149,43 @@ func ListActorsWithPositiveBalance(actorType string) []*Actor {
 }
 
 func ListActorsWithoutLoan(actorType string) []*Actor {
-	actors := ListActors(actorType)
-	var availableActorsWithoutLoan []*Actor
-	for _, actor := range actors {
+	var actorsWithoutLoan []*Actor
+	for _, actor := range ListActors(actorType) {
 		if len(actor.Loans) == 0 {
-			availableActorsWithoutLoan = append(availableActorsWithoutLoan, actor)
+			actorsWithoutLoan = append(actorsWithoutLoan, actor)
 		}
 	}
-	return availableActorsWithoutLoan
+	return actorsWithoutLoan
 }
 
-func ListActorsWithLoanOtherThan(actorType string, loan *Loan) []*Actor {
-	actors := ListActorsWithoutLoan(actorType)
-	var availableActorsWithLoan []*Actor
-
-	for _, actor := range actors {
+func ListActorsWithLoan(actorType string) []*Actor {
+	var actorsWithLoan []*Actor
+	for _, actor := range ListActors(actorType) {
 		if len(actor.Loans) != 0 {
-			for _, actorLoan := range actor.Loans {
-				if actorLoan.ID != loan.ID && !isActorAlreadyInSlice(*actor, actors) {
-					availableActorsWithLoan = append(availableActorsWithLoan, actor)
-				}
-			}
+			actorsWithLoan = append(actorsWithLoan, actor)
 		}
 	}
-	return availableActorsWithLoan
+	return actorsWithLoan
+}
+
+func ListActorsWithLoanOtherThanTarget(actorType string, loan *Loan) []*Actor {
+	var actorsWithLoanOtherThan []*Actor
+
+	for _, actor := range ListActorsWithLoan(actorType) {
+		targetLoanDetected := false
+
+		for _, actorLoan := range actor.Loans {
+			if actorLoan.ID == loan.ID {
+				targetLoanDetected = true
+			}
+		}
+
+		if !targetLoanDetected && !actorAlreadyInSlice(*actor, actorsWithLoanOtherThan) {
+			fmt.Println("[Actor] ✅ Adding actor to slice:", actor.ID)
+			actorsWithLoanOtherThan = append(actorsWithLoanOtherThan, actor)
+		}
+	}
+	return actorsWithLoanOtherThan
 }
 
 func newActor(actorType string, name string, balance float64) *Actor {
@@ -196,7 +224,7 @@ func CreateDefaultActor(actorType string) *Actor {
 	return actor
 }
 
-func isActorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {
+func actorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {
 	for _, actor := range sliceOfActors {
 		if actor.ID == newActor.ID {
 			return true

@@ -71,7 +71,7 @@ func (instance *Loan) Activate() {
 	CreateDepositTransaction(instance.Borrower, instance.InitialDeposit)
 
 	for _, lender := range instance.Lenders {
-		amount := instance.amountPerLender()
+		amount := instance.AmountPerLender()
 		CreateTransaction(*lender, instance.Borrower, amount)
 		lender.Refresh()
 	}
@@ -139,13 +139,13 @@ func (instance *Loan) insurerQuantityRequired() int {
 	return quantity
 }
 
-func (instance *Loan) amountPerLender() float64 {
+func (instance *Loan) AmountPerLender() float64 {
 	amount := instance.Amount / float64(instance.lenderQuantityRequired())
 	fmt.Printf("%1.2f €/lender.\n", amount)
 	return amount
 }
 
-func (instance *Loan) amountPerInsurer() float64 {
+func (instance *Loan) AmountPerInsurer() float64 {
 	return instance.Amount / float64(instance.insurerQuantityRequired())
 }
 

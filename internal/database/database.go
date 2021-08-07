@@ -21,9 +21,8 @@ func SetupDB() {
 }
 
 func ResetDB() {
-	if global.Db != nil {
-		DropBD()
-	}
+	SetupDB()
+	DropBD()
 	SetupDB()
 }
 
