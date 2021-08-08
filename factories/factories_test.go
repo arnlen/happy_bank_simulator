@@ -10,14 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestActorFactory_NewBorrower(t *testing.T) {
+func TestActorFactory_NewBorrowers(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	borrower := factories.NewBorrower()
+	borrowers := factories.NewBorrowers(3)
 
-	assert.True(borrower.IsBorrower())
-	assert.Equal(len(borrower.Loans), 0)
+	assert.Len(borrowers, 3)
+	assert.True(borrowers[0].IsBorrower())
+	assert.Len(borrowers[0].Loans, 0)
 }
 
 func TestActorFactory_NewBorrowerWithLoan(t *testing.T) {
@@ -27,7 +28,7 @@ func TestActorFactory_NewBorrowerWithLoan(t *testing.T) {
 	borrower := factories.NewBorrowerWithLoan()
 
 	assert.True(borrower.IsBorrower())
-	assert.Equal(len(borrower.Loans), 1)
+	assert.Len(borrower.Loans, 1)
 	assert.NotEqual(borrower.Loans[0].ID, 0)
 }
 
@@ -38,7 +39,7 @@ func TestActorFactory_NewLender(t *testing.T) {
 	lender := factories.NewLender()
 
 	assert.True(lender.IsLender())
-	assert.Equal(len(lender.Loans), 0)
+	assert.Len(lender.Loans, 0)
 }
 
 func TestActorFactory_NewLenderWithLoan(t *testing.T) {
@@ -48,7 +49,7 @@ func TestActorFactory_NewLenderWithLoan(t *testing.T) {
 	lender := factories.NewLenderWithLoan()
 
 	assert.True(lender.IsLender())
-	assert.Equal(len(lender.Loans), 1)
+	assert.Len(lender.Loans, 1)
 	assert.NotEqual(lender.Loans[0].ID, 0)
 	assert.Equal(lender.Loans[0].Amount, configs.Loan.DefaultAmount)
 }
@@ -60,7 +61,7 @@ func TestActorFactory_NewInsurer(t *testing.T) {
 	insurer := factories.NewInsurer()
 
 	assert.True(insurer.IsInsurer())
-	assert.Equal(len(insurer.Loans), 0)
+	assert.Len(insurer.Loans, 0)
 }
 
 func TestActorFactory_NewInsurerWithLoan(t *testing.T) {
@@ -70,7 +71,7 @@ func TestActorFactory_NewInsurerWithLoan(t *testing.T) {
 	insurer := factories.NewInsurerWithLoan()
 
 	assert.True(insurer.IsInsurer())
-	assert.Equal(len(insurer.Loans), 1)
+	assert.Len(insurer.Loans, 1)
 	assert.NotEqual(insurer.Loans[0].ID, 0)
 	assert.Equal(insurer.Loans[0].Amount, configs.Loan.DefaultAmount)
 }
@@ -82,8 +83,8 @@ func TestActorFactory_NewLoanWithBorrowerLendersInsurers(t *testing.T) {
 	loan := factories.NewLoanWithBorrowerLendersInsurers()
 
 	assert.NotNil(loan.Borrower)
-	assert.Equal(len(loan.Lenders), 1)
-	assert.Equal(len(loan.Insurers), 1)
+	assert.Len(loan.Lenders, 1)
+	assert.Len(loan.Insurers, 1)
 	assert.NotEqual(loan.Lenders[0].ID, 0)
 	assert.NotEqual(loan.Insurers[0].ID, 0)
 }

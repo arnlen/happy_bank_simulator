@@ -59,12 +59,16 @@ func (instance *Loan) Refresh() {
 	global.Db.Preload(clause.Associations).First(&instance, instance.ID)
 }
 
-func (instance *Loan) AddLender(lender *Actor) {
-	global.Db.Model(&instance).Association("Lenders").Append(lender)
+func (instance *Loan) AssignBorrower(borrower *Actor) {
+	instance.Borrower = *borrower
 }
 
-func (instance *Loan) AddInsurer(insurer *Actor) {
-	global.Db.Model(&instance).Association("Insurers").Append(insurer)
+func (instance *Loan) AssignLender(lender *Actor) {
+	instance.Lenders = append(instance.Lenders, lender)
+}
+
+func (instance *Loan) AssignInsurer(insurer *Actor) {
+	instance.Insurers = append(instance.Insurers, insurer)
 }
 
 func (instance *Loan) Activate() {
@@ -79,6 +83,11 @@ func (instance *Loan) Activate() {
 	instance.IsActive = true
 	instance.Save()
 	instance.Borrower.Refresh()
+}
+
+func (instance *Loan) Refund(amount float64) {
+	instance.RefundedAmount += amount
+	instance.Save()
 }
 
 func (instance *Loan) SetRandomNumberOfMonthsBeforeFailure() {
@@ -105,38 +114,18 @@ func (instance *Loan) SetBorrowerMonthlyIncomes() {
 	instance.Borrower.UpdateMontlyIncomes(montlyIncomes)
 }
 
-func (instance *Loan) AssignBorrower(borrower *Actor) {
-	instance.Borrower = *borrower
-}
-
-func (instance *Loan) AssignLender(lender *Actor) {
-	instance.Lenders = append(instance.Lenders, lender)
-}
-
-func (instance *Loan) AssignInsurer(insurer *Actor) {
-	instance.Insurers = append(instance.Insurers, insurer)
-}
-
 func (instance *Loan) RequiredMontlyIncomes() float64 {
 	if instance.WillFail() {
-		amountToRefundUntilFailure := instance.monthlyPaymentDue() * float64(instance.NumberOfMonthsBeforeFailure)
+		amountToRefundUntilFailure := instance.MonthlyPayment() * float64(instance.NumberOfMonthsBeforeFailure)
 		totalIncomesUntilFailure := amountToRefundUntilFailure - instance.Borrower.Balance
 		return totalIncomesUntilFailure / float64(instance.NumberOfMonthsBeforeFailure)
 	}
 
-	return instance.monthlyPaymentDue()
+	return instance.MonthlyPayment()
 }
 
-func (instance *Loan) lenderQuantityRequired() int {
-	quantity := int(math.Ceil(instance.Amount / configs.Actor.MaxAmountPerLoan))
-	fmt.Printf("%s lenders are required\n", strconv.Itoa(quantity))
-	return quantity
-}
-
-func (instance *Loan) insurerQuantityRequired() int {
-	quantity := int(math.Ceil(instance.Amount / configs.Actor.MaxAmountPerLoan))
-	fmt.Printf("%s insurers are required\n", strconv.Itoa(quantity))
-	return quantity
+func (instance *Loan) MonthlyPayment() float64 {
+	return instance.MonthlyCredit + instance.MonthlyInsurance
 }
 
 func (instance *Loan) AmountPerLender() float64 {
@@ -187,9 +176,16 @@ func (instance *Loan) Print() {
 	fmt.Printf("\n")
 }
 
-func (instance *Loan) Refund(amount float64) {
-	instance.RefundedAmount += amount
-	instance.Save()
+func (instance *Loan) lenderQuantityRequired() int {
+	quantity := int(math.Ceil(instance.Amount / configs.Actor.MaxAmountPerLoan))
+	fmt.Printf("%s lenders are required\n", strconv.Itoa(quantity))
+	return quantity
+}
+
+func (instance *Loan) insurerQuantityRequired() int {
+	quantity := int(math.Ceil(instance.Amount / configs.Actor.MaxAmountPerLoan))
+	fmt.Printf("%s insurers are required\n", strconv.Itoa(quantity))
+	return quantity
 }
 
 func (instance *Loan) totalCreditCost() float64 {
@@ -198,10 +194,6 @@ func (instance *Loan) totalCreditCost() float64 {
 
 func (instance *Loan) totalInsuranceCost() float64 {
 	return instance.MonthlyInsurance * float64(instance.Duration)
-}
-
-func (instance *Loan) monthlyPaymentDue() float64 {
-	return instance.MonthlyCredit + instance.MonthlyInsurance
 }
 
 func (instance *Loan) totalLoanCost() float64 {
@@ -226,6 +218,12 @@ func ListActiveLoans() []Loan {
 	return loans
 }
 
+func CreateDefaultLoan() *Loan {
+	var loan = newDefaultLoan()
+	loan.Save()
+	return loan
+}
+
 func newDefaultLoan() *Loan {
 	amount := configs.Loan.DefaultAmount
 	startDate := configs.General.StartDate
@@ -248,12 +246,6 @@ func newDefaultLoan() *Loan {
 		MonthlyInsurance: monthlyInsurance,
 		IsActive:         false,
 	}
-}
-
-func CreateDefaultLoan() *Loan {
-	var loan = newDefaultLoan()
-	loan.Save()
-	return loan
 }
 
 func calculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount float64) float64 {

@@ -52,10 +52,14 @@ func TestActorFactory_UpdateMontlyIncomes(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
+	// Bad case when actor isn't a borrower
+	// => Not implemented
+
+	// Good case when actor is a borrower
 	borrower := factories.NewBorrower()
 	borrower.UpdateMontlyIncomes(1000)
 
-	assert.Equal(borrower.MonthlyIncomes, 1000.0, "Borrower's monthly income should be updated")
+	assert.Equal(1000.0, borrower.MonthlyIncomes)
 }
 
 func TestActorFactory_AssignLoan(t *testing.T) {
@@ -73,18 +77,18 @@ func TestActorFactory_AssignLoan(t *testing.T) {
 	loan = factories.NewLoan()
 	lender.AssignLoan(loan)
 
-	assert.Equal(len(loan.Lenders), 1, "Loan should have one lender")
+	assert.Len(loan.Lenders, 1, "Loan should have one lender")
 	assert.Equal(loan.Lenders[0].ID, lender.ID, "Loan's lender ID should be our loan ID")
-	assert.Equal(len(lender.Loans), 1, "Lender should have one loan")
+	assert.Len(lender.Loans, 1, "Lender should have one loan")
 	assert.Equal(lender.Loans[0].ID, loan.ID, "Lender's loan ID match loan's ID")
 
 	insurer := factories.NewInsurer()
 	loan = factories.NewLoan()
 	insurer.AssignLoan(loan)
 
-	assert.Equal(len(loan.Insurers), 1, "Loan should have one insurer")
+	assert.Len(loan.Insurers, 1, "Loan should have one insurer")
 	assert.Equal(loan.Insurers[0].ID, insurer.ID, "Loan's insurer ID should be our loan ID")
-	assert.Equal(len(insurer.Loans), 1, "Insurer should have one loan")
+	assert.Len(insurer.Loans, 1, "Insurer should have one loan")
 	assert.Equal(insurer.Loans[0].ID, loan.ID, "Insurer's loan ID match loan's ID")
 }
 
@@ -272,4 +276,24 @@ func TestActorFactory_ListActorsWithLoanOtherThanTarget(t *testing.T) {
 	assert.Equal(2, len(borrowers))
 	assert.Equal(3, len(lenders))
 	assert.Equal(4, len(insurers))
+}
+
+func TestActorFactory_CreateActor(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	actor := models.CreateActor(configs.Actor.BorrowerString, "Test actor", 1000)
+
+	assert.True(actor.IsBorrower())
+	assert.NotEqual(0, actor.ID)
+}
+
+func TestActorFactory_CreateDefaultActor(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	actor := models.CreateDefaultActor(configs.Actor.BorrowerString)
+
+	assert.True(actor.IsBorrower())
+	assert.NotEqual(0, actor.ID)
 }

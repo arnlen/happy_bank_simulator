@@ -19,7 +19,7 @@ func TestTransaction_ListTransactions(t *testing.T) {
 
 	transactions := models.ListTransactions()
 
-	assert.Equal(len(transactions), 2)
+	assert.Len(transactions, 2)
 }
 
 func TestTransaction_CreateTransaction(t *testing.T) {

@@ -188,15 +188,6 @@ func ListActorsWithLoanOtherThanTarget(actorType string, loan *Loan) []*Actor {
 	return actorsWithLoanOtherThan
 }
 
-func newActor(actorType string, name string, balance float64) *Actor {
-	return &Actor{
-		Name:    name,
-		Loans:   []*Loan{},
-		Balance: balance,
-		Type:    actorType,
-	}
-}
-
 func CreateActor(actorType string, name string, balance float64) *Actor {
 	actor := newActor(actorType, name, balance)
 	result := global.Db.Create(&actor)
@@ -208,6 +199,21 @@ func CreateActor(actorType string, name string, balance float64) *Actor {
 	return actor
 }
 
+func CreateDefaultActor(actorType string) *Actor {
+	actor := newDefaultActor(actorType)
+	actor.Save()
+	return actor
+}
+
+func newActor(actorType string, name string, balance float64) *Actor {
+	return &Actor{
+		Name:    name,
+		Loans:   []*Loan{},
+		Balance: balance,
+		Type:    actorType,
+	}
+}
+
 func newDefaultActor(actorType string) *Actor {
 	return &Actor{
 		Name:           faker.Name().Name(),
@@ -216,12 +222,6 @@ func newDefaultActor(actorType string) *Actor {
 		Balance:        configs.Actor.InitialBalance,
 		Type:           actorType,
 	}
-}
-
-func CreateDefaultActor(actorType string) *Actor {
-	actor := newDefaultActor(actorType)
-	actor.Save()
-	return actor
 }
 
 func actorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {

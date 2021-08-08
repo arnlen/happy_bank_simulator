@@ -4,8 +4,17 @@ import (
 	"happy_bank_simulator/models"
 )
 
+func NewLoans(quantity int) []*models.Loan {
+	var loans []*models.Loan
+	for i := 0; i < quantity; i++ {
+		loan := models.CreateDefaultLoan()
+		loans = append(loans, loan)
+	}
+	return loans
+}
+
 func NewLoan() *models.Loan {
-	return models.CreateDefaultLoan()
+	return NewLoans(1)[0]
 }
 
 func NewLoanWithBorrowerLendersInsurers() *models.Loan {
