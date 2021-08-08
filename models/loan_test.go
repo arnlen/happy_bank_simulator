@@ -33,7 +33,7 @@ func TestLoan_AssignBorrower(t *testing.T) {
 	assert.Equal(borrower.ID, loan.Borrower.ID)
 }
 
-func TestLoan_AssignLender(t *testing.T) {
+func TestLoan_AssignLenders(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
@@ -41,14 +41,12 @@ func TestLoan_AssignLender(t *testing.T) {
 	assert.Len(loan.Lenders, 0)
 
 	lenders := factories.NewLenders(3)
-	loan.AssignLender(lenders[0])
-	loan.AssignLender(lenders[1])
-	loan.AssignLender(lenders[2])
+	loan.AssignLenders(lenders)
 
 	assert.Len(loan.Lenders, 3)
 }
 
-func TestLoan_AssignInsurer(t *testing.T) {
+func TestLoan_AssignInsurers(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
@@ -56,9 +54,7 @@ func TestLoan_AssignInsurer(t *testing.T) {
 	assert.Len(loan.Insurers, 0)
 
 	insurers := factories.NewInsurers(3)
-	loan.AssignInsurer(insurers[0])
-	loan.AssignInsurer(insurers[1])
-	loan.AssignInsurer(insurers[2])
+	loan.AssignInsurers(insurers)
 
 	assert.Len(loan.Insurers, 3)
 }

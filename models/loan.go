@@ -64,11 +64,19 @@ func (instance *Loan) AssignBorrower(borrower *Actor) {
 }
 
 func (instance *Loan) AssignLender(lender *Actor) {
-	instance.Lenders = append(instance.Lenders, lender)
+	instance.AssignLenders([]*Actor{lender})
+}
+
+func (instance *Loan) AssignLenders(lenders []*Actor) {
+	instance.Lenders = append(instance.Lenders, lenders...)
+}
+
+func (instance *Loan) AssignInsurers(insurers []*Actor) {
+	instance.Insurers = append(instance.Insurers, insurers...)
 }
 
 func (instance *Loan) AssignInsurer(insurer *Actor) {
-	instance.Insurers = append(instance.Insurers, insurer)
+	instance.AssignInsurers([]*Actor{insurer})
 }
 
 func (instance *Loan) Activate() {
