@@ -164,10 +164,14 @@ func (instance *Loan) SetupLenders() {
 		fmt.Printf("- Not enough available lenders: missing %s lenders\n",
 			strconv.Itoa(missingLendersQuantity))
 		newLenders := CreateLenders(missingLendersQuantity)
-		instance.AssignLenders(newLenders)
-		fmt.Printf("- %s new lenders created and assigned to loan\n",
+		fmt.Printf("- %s new lenders created\n",
 			strconv.Itoa(len(newLenders)))
+		lenderThatCanTakeThisLoan = append(lenderThatCanTakeThisLoan, newLenders...)
 	}
+
+	instance.AssignLenders(lenderThatCanTakeThisLoan)
+	fmt.Printf("- %s lenders assigned to loan\n",
+		strconv.Itoa(len(lenderThatCanTakeThisLoan)))
 
 	fmt.Printf("=> Loan #%s has now %s lenders assigned: ",
 		strconv.Itoa(int(instance.ID)),
@@ -176,6 +180,7 @@ func (instance *Loan) SetupLenders() {
 	for _, lender := range instance.Lenders {
 		fmt.Printf("#%s, ", strconv.Itoa(int(lender.ID)))
 	}
+	fmt.Printf("\n")
 }
 
 func (instance *Loan) Print() {

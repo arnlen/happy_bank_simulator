@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"happy_bank_simulator/app/configs"
 	"happy_bank_simulator/internal/database"
 	"happy_bank_simulator/models"
 
@@ -150,14 +151,25 @@ func TestLoan_SetBorrowerMonthlyIncomes(t *testing.T) {
 	assert.Less(0.0, loan.Borrower.MonthlyIncomes)
 }
 
-// TODO: implement
-// func TestLoan_SetupLenders(t *testing.T) {
-// 	database.ResetDB()
-// 	assert := assert.New(t)
-// 	...
-// 	...
-// 	...
-// }
+func TestLoan_SetupLenders(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	// Case 1: when no lender in database
+	loan1 := models.CreateLoan()
+	assert.Len(loan1.Lenders, 0)
+	assert.Len(models.ListActors(configs.Actor.LenderString), 0)
+
+	loan1.SetupLenders()
+	assert.Len(loan1.Lenders, 5)
+	assert.Len(models.ListActors(configs.Actor.LenderString), 5)
+
+	// Case 2: when already 5 lenders in database
+	loan2 := models.CreateLoan()
+	loan2.SetupLenders()
+	assert.Len(loan2.Lenders, 5)
+	assert.Len(models.ListActors(configs.Actor.LenderString), 5)
+}
 
 func TestLoan_RequiredMontlyIncomes(t *testing.T) {
 	database.ResetDB()
