@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"happy_bank_simulator/app/configs"
-	"happy_bank_simulator/factories"
 	"happy_bank_simulator/internal/database"
 	"happy_bank_simulator/models"
 
@@ -15,9 +14,9 @@ func TestActor_NetBalance(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	borrowerWithLoan := factories.NewBorrowerWithLoan()
-	lenderWithLoan := factories.NewLenderWithLoan()
-	insurerWithLoan := factories.NewInsurerWithLoan()
+	borrowerWithLoan := models.CreateBorrowerWithLoan()
+	lenderWithLoan := models.CreateLenderWithLoan()
+	insurerWithLoan := models.CreateInsurerWithLoan()
 
 	assert.Equal(borrowerWithLoan.NetBalance(), borrowerWithLoan.Balance-borrowerWithLoan.Loans[0].Amount)
 	assert.Equal(lenderWithLoan.NetBalance(), lenderWithLoan.Balance)
@@ -28,7 +27,7 @@ func TestActor_TotalAmountAssigned(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	borrowerWithLoan := factories.NewBorrowerWithLoan()
+	borrowerWithLoan := models.CreateBorrowerWithLoan()
 
 	assert.Equal(borrowerWithLoan.TotalAmountAssigned(), borrowerWithLoan.Loans[0].Amount)
 }
@@ -37,7 +36,7 @@ func TestActorFactory_UpdateBalance(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	actor := factories.NewInsurer()
+	actor := models.CreateInsurer()
 	actor.Balance = 0
 	actor.UpdateBalance(1000.0)
 
@@ -56,7 +55,7 @@ func TestActorFactory_UpdateMontlyIncomes(t *testing.T) {
 	// => Not implemented
 
 	// Good case when actor is a borrower
-	borrower := factories.NewBorrower()
+	borrower := models.CreateBorrower()
 	borrower.UpdateMontlyIncomes(1000)
 
 	assert.Equal(1000.0, borrower.MonthlyIncomes)
@@ -66,15 +65,15 @@ func TestActorFactory_AssignLoan(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	borrower := factories.NewBorrower()
-	loan := factories.NewLoan()
+	borrower := models.CreateBorrower()
+	loan := models.CreateLoan()
 	borrower.AssignLoan(loan)
 
 	assert.Equal(loan.Borrower.ID, borrower.ID, "Loan's borrower ID match borrower's ID")
 	assert.Equal(borrower.Loans[0].ID, loan.ID, "Borrower's loan ID match loan's ID")
 
-	lender := factories.NewLender()
-	loan = factories.NewLoan()
+	lender := models.CreateLender()
+	loan = models.CreateLoan()
 	lender.AssignLoan(loan)
 
 	assert.Len(loan.Lenders, 1, "Loan should have one lender")
@@ -82,8 +81,8 @@ func TestActorFactory_AssignLoan(t *testing.T) {
 	assert.Len(lender.Loans, 1, "Lender should have one loan")
 	assert.Equal(lender.Loans[0].ID, loan.ID, "Lender's loan ID match loan's ID")
 
-	insurer := factories.NewInsurer()
-	loan = factories.NewLoan()
+	insurer := models.CreateInsurer()
+	loan = models.CreateLoan()
 	insurer.AssignLoan(loan)
 
 	assert.Len(loan.Insurers, 1, "Loan should have one insurer")
@@ -96,17 +95,17 @@ func TestActorFactory_CanTakeThisLoan(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	targetLoan := factories.NewLoan()
+	targetLoan := models.CreateLoan()
 	targetLoan.Amount = 1000
 	targetLoan.Save()
-	anotherLoan := factories.NewLoan()
+	anotherLoan := models.CreateLoan()
 	anotherLoan.Amount = 1000
 	anotherLoan.Save()
 
 	// ----------------------------
 	// Actor: Borrower
 	//
-	borrower := factories.NewBorrower()
+	borrower := models.CreateBorrower()
 
 	// Invalid case 1: When balance == 0
 	borrower.UpdateBalance(-borrower.Balance)
@@ -125,7 +124,7 @@ func TestActorFactory_CanTakeThisLoan(t *testing.T) {
 	// ----------------------------
 	// Actor: Lender
 	//
-	lender := factories.NewLender()
+	lender := models.CreateLender()
 
 	// Invalid case: when balance < amount to lend
 	amountPerLender := targetLoan.AmountPerLender()
@@ -140,7 +139,7 @@ func TestActorFactory_CanTakeThisLoan(t *testing.T) {
 	// ----------------------------
 	// Actor: Insurer
 	//
-	insurer := factories.NewInsurer()
+	insurer := models.CreateInsurer()
 
 	// Invalid case 1: when balance < amount to insure
 	amountPerInsurer := targetLoan.AmountPerInsurer()
@@ -159,13 +158,46 @@ func TestActorFactory_CanTakeThisLoan(t *testing.T) {
 	assert.True(insurer.CanTakeThisLoan(*targetLoan))
 }
 
+func TestActorFactory_IsBorrower(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	borrower := models.CreateBorrower()
+
+	assert.True(borrower.IsBorrower())
+	assert.False(borrower.IsLender())
+	assert.False(borrower.IsInsurer())
+}
+
+func TestActorFactory_IsLender(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	lender := models.CreateLender()
+
+	assert.False(lender.IsBorrower())
+	assert.True(lender.IsLender())
+	assert.False(lender.IsInsurer())
+}
+
+func TestActorFactory_IsInsurer(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	insurer := models.CreateInsurer()
+
+	assert.False(insurer.IsBorrower())
+	assert.False(insurer.IsLender())
+	assert.True(insurer.IsInsurer())
+}
+
 func TestActorFactory_ListActors(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	factories.NewBorrowers(3)
-	factories.NewLenders(4)
-	factories.NewInsurers(5)
+	models.CreateBorrowers(3)
+	models.CreateLenders(4)
+	models.CreateInsurers(5)
 
 	borrowers := models.ListActors(configs.Actor.BorrowerString)
 	lenders := models.ListActors(configs.Actor.LenderString)
@@ -185,19 +217,19 @@ func TestActorFactory_ListActorsWithPositiveBalance(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	borrowerWithNullBalance := factories.NewBorrower()
+	borrowerWithNullBalance := models.CreateBorrower()
 	borrowerWithNullBalance.UpdateBalance(-borrowerWithNullBalance.Balance)
-	borrowersWithPositiveBalance := factories.NewBorrowers(2)
+	borrowersWithPositiveBalance := models.CreateBorrowers(2)
 	borrowers := models.ListActorsWithPositiveBalance(configs.Actor.BorrowerString)
 
-	lenderWithNullBalance := factories.NewLender()
+	lenderWithNullBalance := models.CreateLender()
 	lenderWithNullBalance.UpdateBalance(-lenderWithNullBalance.Balance)
-	lendersWithPositiveBalance := factories.NewLenders(3)
+	lendersWithPositiveBalance := models.CreateLenders(3)
 	lenders := models.ListActorsWithPositiveBalance(configs.Actor.LenderString)
 
-	insurerWithNullBalance := factories.NewInsurer()
+	insurerWithNullBalance := models.CreateInsurer()
 	insurerWithNullBalance.UpdateBalance(-insurerWithNullBalance.Balance)
-	insurersWithPositiveBalance := factories.NewInsurers(4)
+	insurersWithPositiveBalance := models.CreateInsurers(4)
 	insurers := models.ListActorsWithPositiveBalance(configs.Actor.InsurerString)
 
 	assert.Equal(2, len(borrowers))
@@ -217,16 +249,16 @@ func TestActorFactory_ListActorsWithoutLoan(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	factories.NewBorrowers(2)
-	factories.NewBorrowersWithLoan(4)
+	models.CreateBorrowers(2)
+	models.CreateBorrowersWithLoan(4)
 	borrowers := models.ListActorsWithoutLoan(configs.Actor.BorrowerString)
 
-	factories.NewLenders(3)
-	factories.NewLendersWithLoan(3)
+	models.CreateLenders(3)
+	models.CreateLendersWithLoan(3)
 	lenders := models.ListActorsWithoutLoan(configs.Actor.LenderString)
 
-	factories.NewInsurers(4)
-	factories.NewInsurersWithLoan(2)
+	models.CreateInsurers(4)
+	models.CreateInsurersWithLoan(2)
 	insurers := models.ListActorsWithoutLoan(configs.Actor.InsurerString)
 
 	assert.Equal(2, len(borrowers))
@@ -238,16 +270,16 @@ func TestActorFactory_ListActorsWithLoan(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	factories.NewBorrowers(2)
-	factories.NewBorrowersWithLoan(4)
+	models.CreateBorrowers(2)
+	models.CreateBorrowersWithLoan(4)
 	borrowers := models.ListActorsWithLoan(configs.Actor.BorrowerString)
 
-	factories.NewLenders(3)
-	factories.NewLendersWithLoan(3)
+	models.CreateLenders(3)
+	models.CreateLendersWithLoan(3)
 	lenders := models.ListActorsWithLoan(configs.Actor.LenderString)
 
-	factories.NewInsurers(4)
-	factories.NewInsurersWithLoan(2)
+	models.CreateInsurers(4)
+	models.CreateInsurersWithLoan(2)
 	insurers := models.ListActorsWithLoan(configs.Actor.InsurerString)
 
 	assert.Equal(4, len(borrowers))
@@ -259,41 +291,21 @@ func TestActorFactory_ListActorsWithLoanOtherThanTarget(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	loan := factories.NewLoan()
+	loan := models.CreateLoan()
 
-	borrowersWithLoan := factories.NewBorrowersWithLoan(3)
+	borrowersWithLoan := models.CreateBorrowersWithLoan(3)
 	borrowersWithLoan[0].AssignLoan(loan)
 	borrowers := models.ListActorsWithLoanOtherThanTarget(configs.Actor.BorrowerString, loan)
 
-	lendersWithLoan := factories.NewLendersWithLoan(4)
+	lendersWithLoan := models.CreateLendersWithLoan(4)
 	lendersWithLoan[0].AssignLoan(loan)
 	lenders := models.ListActorsWithLoanOtherThanTarget(configs.Actor.LenderString, loan)
 
-	insurersWithLoan := factories.NewInsurersWithLoan(5)
+	insurersWithLoan := models.CreateInsurersWithLoan(5)
 	insurersWithLoan[0].AssignLoan(loan)
 	insurers := models.ListActorsWithLoanOtherThanTarget(configs.Actor.InsurerString, loan)
 
 	assert.Equal(2, len(borrowers))
 	assert.Equal(3, len(lenders))
 	assert.Equal(4, len(insurers))
-}
-
-func TestActorFactory_CreateActor(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	actor := models.CreateActor(configs.Actor.BorrowerString, "Test actor", 1000)
-
-	assert.True(actor.IsBorrower())
-	assert.NotEqual(0, actor.ID)
-}
-
-func TestActorFactory_CreateDefaultActor(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	actor := models.CreateDefaultActor(configs.Actor.BorrowerString)
-
-	assert.True(actor.IsBorrower())
-	assert.NotEqual(0, actor.ID)
 }

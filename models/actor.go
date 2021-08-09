@@ -10,7 +10,6 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"syreclabs.com/go/faker"
 )
 
 type Actor struct {
@@ -186,42 +185,6 @@ func ListActorsWithLoanOtherThanTarget(actorType string, loan *Loan) []*Actor {
 		}
 	}
 	return actorsWithLoanOtherThan
-}
-
-func CreateActor(actorType string, name string, balance float64) *Actor {
-	actor := newActor(actorType, name, balance)
-	result := global.Db.Create(&actor)
-
-	if actor.ID == 0 || result.RowsAffected == 0 {
-		log.Fatal(result.Error)
-	}
-
-	return actor
-}
-
-func CreateDefaultActor(actorType string) *Actor {
-	actor := newDefaultActor(actorType)
-	actor.Save()
-	return actor
-}
-
-func newActor(actorType string, name string, balance float64) *Actor {
-	return &Actor{
-		Name:    name,
-		Loans:   []*Loan{},
-		Balance: balance,
-		Type:    actorType,
-	}
-}
-
-func newDefaultActor(actorType string) *Actor {
-	return &Actor{
-		Name:           faker.Name().Name(),
-		Loans:          []*Loan{},
-		InitialBalance: configs.Actor.InitialBalance,
-		Balance:        configs.Actor.InitialBalance,
-		Type:           actorType,
-	}
 }
 
 func actorAlreadyInSlice(newActor Actor, sliceOfActors []*Actor) bool {

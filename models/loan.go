@@ -146,6 +146,38 @@ func (instance *Loan) AmountPerInsurer() float64 {
 	return instance.Amount / float64(instance.insurerQuantityRequired())
 }
 
+func (instance *Loan) SetupLenders() {
+	fmt.Printf("Setup lenders for Loan #%s:\n", strconv.Itoa(int(instance.ID)))
+
+	var lenderThatCanTakeThisLoan []*Actor
+
+	for _, lender := range ListActors(configs.Actor.LenderString) {
+		if lender.CanTakeThisLoan(*instance) {
+			lenderThatCanTakeThisLoan = append(lenderThatCanTakeThisLoan, lender)
+		}
+	}
+	fmt.Printf("- %s lenders can take this loan\n",
+		strconv.Itoa(len(lenderThatCanTakeThisLoan)))
+
+	missingLendersQuantity := instance.lenderQuantityRequired() - len(lenderThatCanTakeThisLoan)
+	if missingLendersQuantity > 0 {
+		fmt.Printf("- Not enough available lenders: missing %s lenders\n",
+			strconv.Itoa(missingLendersQuantity))
+		newLenders := CreateLenders(missingLendersQuantity)
+		instance.AssignLenders(newLenders)
+		fmt.Printf("- %s new lenders created and assigned to loan\n",
+			strconv.Itoa(len(newLenders)))
+	}
+
+	fmt.Printf("=> Loan #%s has now %s lenders assigned: ",
+		strconv.Itoa(int(instance.ID)),
+		strconv.Itoa(len(instance.Lenders)))
+
+	for _, lender := range instance.Lenders {
+		fmt.Printf("#%s, ", strconv.Itoa(int(lender.ID)))
+	}
+}
+
 func (instance *Loan) Print() {
 	fmt.Printf("\n---[ LOAN #%s ]---\n", strconv.Itoa(int(instance.ID)))
 	fmt.Printf("- Duration: %s months, from %s to %s\n", strconv.Itoa(instance.Duration), instance.StartDate, instance.EndDate())
@@ -224,36 +256,6 @@ func ListActiveLoans() []Loan {
 	var loans []Loan
 	global.Db.Preload(clause.Associations).Where("is_active = ?", true).Find(&loans)
 	return loans
-}
-
-func CreateDefaultLoan() *Loan {
-	var loan = newDefaultLoan()
-	loan.Save()
-	return loan
-}
-
-func newDefaultLoan() *Loan {
-	amount := configs.Loan.DefaultAmount
-	startDate := configs.General.StartDate
-	duration := configs.Loan.DefaultDuration
-	creditRate := configs.General.CreditInterestRate
-	insuranceRate := configs.General.InsuranceInterestRate
-
-	initialDeposit := configs.Loan.SecurityDepositRate * float64(amount)
-	monthlyCredit := calculateMonthlyCreditPayment(creditRate, duration, amount)
-	monthlyInsurance := calculateMonthlyInsurancePayment(insuranceRate, amount)
-
-	return &Loan{
-		StartDate:        startDate,
-		Duration:         configs.Loan.DefaultDuration,
-		Amount:           configs.Loan.DefaultAmount,
-		InitialDeposit:   initialDeposit,
-		CreditRate:       creditRate,
-		InsuranceRate:    insuranceRate,
-		MonthlyCredit:    monthlyCredit,
-		MonthlyInsurance: monthlyInsurance,
-		IsActive:         false,
-	}
 }
 
 func calculateMonthlyCreditPayment(interestCreditRate float64, duration int, amount float64) float64 {
