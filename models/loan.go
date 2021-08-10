@@ -59,6 +59,21 @@ func (instance *Loan) Refresh() {
 	global.Db.Preload(clause.Associations).First(&instance, instance.ID)
 }
 
+func (instance *Loan) AssignActors(actors []*Actor) {
+	for _, actor := range actors {
+		switch actor.Type {
+		case configs.Actor.BorrowerString:
+			instance.AssignBorrower(actor)
+		case configs.Actor.LenderString:
+			instance.AssignLender(actor)
+		case configs.Actor.InsurerString:
+			instance.AssignInsurer(actor)
+		default:
+			log.Fatalf("Unknown actor of type \"%s\"\n", actor.Type)
+		}
+	}
+}
+
 func (instance *Loan) AssignBorrower(borrower *Actor) {
 	instance.Borrower = *borrower
 }
@@ -147,38 +162,74 @@ func (instance *Loan) AmountPerInsurer() float64 {
 }
 
 func (instance *Loan) SetupLenders() {
-	fmt.Printf("Setup lenders for Loan #%s:\n", strconv.Itoa(int(instance.ID)))
+	instance.setupActor(configs.Actor.LenderString)
+}
 
-	var lenderThatCanTakeThisLoan []*Actor
+func (instance *Loan) SetupInsurers() {
+	instance.setupActor(configs.Actor.InsurerString)
+}
 
-	for _, lender := range ListActors(configs.Actor.LenderString) {
-		if lender.CanTakeThisLoan(*instance) {
-			lenderThatCanTakeThisLoan = append(lenderThatCanTakeThisLoan, lender)
+func (instance *Loan) setupActor(actorType string) {
+	fmt.Printf("Setup %s for Loan #%s:\n",
+		actorType,
+		strconv.Itoa(int(instance.ID)),
+	)
+
+	var actorThatCanTakeThisLoan []*Actor
+
+	for _, actor := range ListActors(actorType) {
+		if actor.CanTakeThisLoan(*instance) {
+			actorThatCanTakeThisLoan = append(actorThatCanTakeThisLoan, actor)
 		}
 	}
-	fmt.Printf("- %s lenders can take this loan\n",
-		strconv.Itoa(len(lenderThatCanTakeThisLoan)))
+	fmt.Printf("- %s %s can take this loan\n",
+		strconv.Itoa(len(actorThatCanTakeThisLoan)),
+		actorType,
+	)
 
-	missingLendersQuantity := instance.lenderQuantityRequired() - len(lenderThatCanTakeThisLoan)
-	if missingLendersQuantity > 0 {
-		fmt.Printf("- Not enough available lenders: missing %s lenders\n",
-			strconv.Itoa(missingLendersQuantity))
-		newLenders := CreateLenders(missingLendersQuantity)
-		fmt.Printf("- %s new lenders created\n",
-			strconv.Itoa(len(newLenders)))
-		lenderThatCanTakeThisLoan = append(lenderThatCanTakeThisLoan, newLenders...)
+	var actorQuantityRequired int
+	switch actorType {
+	case configs.Actor.LenderString:
+		actorQuantityRequired = instance.lenderQuantityRequired()
+	case configs.Actor.InsurerString:
+		actorQuantityRequired = instance.insurerQuantityRequired()
 	}
 
-	instance.AssignLenders(lenderThatCanTakeThisLoan)
-	fmt.Printf("- %s lenders assigned to loan\n",
-		strconv.Itoa(len(lenderThatCanTakeThisLoan)))
+	missingActorsQuantity := actorQuantityRequired - len(actorThatCanTakeThisLoan)
+	if missingActorsQuantity > 0 {
+		fmt.Printf("- Not enough available %s: missing %s\n",
+			actorType,
+			strconv.Itoa(missingActorsQuantity),
+		)
+		newActors := CreateActors(actorType, missingActorsQuantity)
+		fmt.Printf("- %s new %s created\n",
+			strconv.Itoa(len(newActors)),
+			actorType,
+		)
+		actorThatCanTakeThisLoan = append(actorThatCanTakeThisLoan, newActors...)
+	}
 
-	fmt.Printf("=> Loan #%s has now %s lenders assigned: ",
+	instance.AssignActors(actorThatCanTakeThisLoan)
+	fmt.Printf("- %s %s assigned to loan\n",
+		strconv.Itoa(len(actorThatCanTakeThisLoan)),
+		actorType,
+	)
+
+	var loanActors []*Actor
+	switch actorType {
+	case configs.Actor.LenderString:
+		loanActors = instance.Lenders
+	case configs.Actor.InsurerString:
+		loanActors = instance.Insurers
+	}
+	fmt.Printf("=> Loan #%s has now %s %s assigned: ",
 		strconv.Itoa(int(instance.ID)),
-		strconv.Itoa(len(instance.Lenders)))
+		strconv.Itoa(len(loanActors)),
+		actorType,
+	)
 
-	for _, lender := range instance.Lenders {
-		fmt.Printf("#%s, ", strconv.Itoa(int(lender.ID)))
+	for _, actor := range loanActors {
+		fmt.Printf("#%s, ", strconv.Itoa(int(actor.ID)))
 	}
 	fmt.Printf("\n")
 }

@@ -171,6 +171,26 @@ func TestLoan_SetupLenders(t *testing.T) {
 	assert.Len(models.ListActors(configs.Actor.LenderString), 5)
 }
 
+func TestLoan_SetupInsurers(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	// Case 1: when no lender in database
+	loan1 := models.CreateLoan()
+	assert.Len(loan1.Insurers, 0)
+	assert.Len(models.ListActors(configs.Actor.InsurerString), 0)
+
+	loan1.SetupInsurers()
+	assert.Len(loan1.Insurers, 5)
+	assert.Len(models.ListActors(configs.Actor.InsurerString), 5)
+
+	// Case 2: when already 5 lenders in database
+	loan2 := models.CreateLoan()
+	loan2.SetupInsurers()
+	assert.Len(loan2.Insurers, 5)
+	assert.Len(models.ListActors(configs.Actor.InsurerString), 5)
+}
+
 func TestLoan_RequiredMontlyIncomes(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)

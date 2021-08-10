@@ -9,6 +9,26 @@ import (
 	"syreclabs.com/go/faker"
 )
 
+func CreateActors(actorType string, quantity int) []*Actor {
+	var actors []*Actor
+	switch actorType {
+	case configs.Actor.BorrowerString:
+		actors = CreateBorrowers(quantity)
+	case configs.Actor.LenderString:
+		actors = CreateLenders(quantity)
+	case configs.Actor.InsurerString:
+		actors = CreateInsurers(quantity)
+	default:
+		log.Fatalf("Unknown actor of type \"%s\"\n", actorType)
+	}
+
+	return actors
+}
+
+func CreateActor(actorType string) *Actor {
+	return CreateActors(actorType, 1)[0]
+}
+
 func CreateBorrowers(quantity int) []*Actor {
 	var borrowers []*Actor
 	for i := 0; i < quantity; i++ {
