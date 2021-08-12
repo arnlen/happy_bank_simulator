@@ -91,5 +91,5 @@ func getBorrowerTableData() [][]string {
 }
 
 func Create(name string, balance float64) *models.Actor {
-	return models.CreateActor(configs.Actor.BorrowerString, name, balance)
+	return models.CreateBorrower()
 }

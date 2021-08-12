@@ -66,5 +66,5 @@ func (instance *ChartsManager) UpdateChartFor(actors []*models.Actor, month stri
 // --- Package methods ---
 
 func chartNameFor(actor models.Actor) string {
-	return fmt.Sprintf("%s#%s", actor.Type, strconv.Itoa(int(actor.GetID())))
+	return fmt.Sprintf("%s#%d", actor.Type, int(actor.ID))
 }
