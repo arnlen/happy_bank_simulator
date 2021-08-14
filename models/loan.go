@@ -21,8 +21,8 @@ type Loan struct {
 	gorm.Model
 	Borrower                    Actor
 	BorrowerID                  uint
-	Lenders                     []*Actor `gorm:"many2many:loan_actors;"`
-	Insurers                    []*Actor `gorm:"many2many:loan_actors;"`
+	Lenders                     []*Actor `gorm:"many2many:loan_lenders;"`
+	Insurers                    []*Actor `gorm:"many2many:loan_insurers;"`
 	StartDate                   string
 	Duration                    int
 	Amount                      float64
@@ -108,7 +108,7 @@ func (instance *Loan) Activate() {
 	instance.Borrower.Refresh()
 }
 
-func (instance *Loan) Refund(amount float64) {
+func (instance *Loan) UpdateRefund(amount float64) {
 	instance.RefundedAmount += amount
 	instance.Save()
 }
@@ -170,7 +170,7 @@ func (instance *Loan) SetupInsurers() {
 }
 
 func (instance *Loan) setupActor(actorType string) {
-	fmt.Printf("Setup %s for Loan #%s:\n",
+	fmt.Printf("Setup %ss for Loan #%s:\n",
 		actorType,
 		strconv.Itoa(int(instance.ID)),
 	)
@@ -234,6 +234,26 @@ func (instance *Loan) setupActor(actorType string) {
 	fmt.Printf("\n")
 }
 
+func (instance *Loan) MakeLendersMonthlyPayments() {
+	for _, lender := range instance.Lenders {
+		transaction := CreateTransaction(instance.Borrower, *lender, instance.MonthlyCredit)
+		transaction.Print()
+		instance.UpdateRefund(instance.MonthlyCredit)
+	}
+}
+
+func (instance *Loan) MakeInsurersMonthlyPayments() {
+	if !instance.IsInsured {
+		fmt.Printf("Loan #%d isn't insured.", int(instance.ID))
+	}
+
+	for _, insurer := range instance.Insurers {
+		transaction := CreateTransaction(instance.Borrower, *insurer, instance.MonthlyInsurance)
+		transaction.Print()
+	}
+
+}
+
 func (instance *Loan) Print() {
 	fmt.Printf("\n---[ LOAN #%s ]---\n", strconv.Itoa(int(instance.ID)))
 	fmt.Printf("- Duration: %s months, from %s to %s\n", strconv.Itoa(instance.Duration), instance.StartDate, instance.EndDate())
@@ -269,6 +289,13 @@ func (instance *Loan) Print() {
 			fmt.Printf("--- %s (#%s) 💰 %1.2f €\n", insurer.Name, strconv.Itoa(int(insurer.ID)), insurer.Balance)
 		}
 	}
+
+	isActive := "No"
+	if instance.IsActive {
+		isActive = fmt.Sprintln("Yes")
+	}
+	fmt.Println("- Is active?", isActive)
+
 	fmt.Printf("\n")
 }
 

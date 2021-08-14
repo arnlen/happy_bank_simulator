@@ -99,7 +99,7 @@ func TestLoan_Refund(t *testing.T) {
 
 	loan := models.CreateLoan()
 	assert.Equal(0.0, loan.RefundedAmount)
-	loan.Refund(1200)
+	loan.UpdateRefund(1200)
 	loan.Refresh()
 
 	assert.Equal(1200.0, loan.RefundedAmount)
@@ -224,4 +224,33 @@ func TestLoan_ListActiveLoans(t *testing.T) {
 	loans[2].Activate()
 
 	assert.Len(models.ListActiveLoans(), 2)
+}
+
+func TestLoan_MakeLendersMonthlyPayments(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	lenders := models.CreateLenders(3)
+	loan := models.CreateLoan()
+	loan.AssignLenders(lenders)
+
+	assert.Len(loan.Lenders, 3)
+	loan.MakeLendersMonthlyPayments()
+
+	assert.Len(models.ListTransactions(), 3)
+}
+
+func TestLoan_MakeInsurersMonthlyPayments(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	insurers := models.CreateInsurers(4)
+	loan := models.CreateLoan()
+	loan.IsInsured = true
+	loan.AssignInsurers(insurers)
+
+	assert.Len(loan.Insurers, 4)
+	loan.MakeInsurersMonthlyPayments()
+
+	assert.Len(models.ListTransactions(), 4)
 }

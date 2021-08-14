@@ -33,19 +33,18 @@ func main() {
 }
 
 func prepareSimulation() {
-	database.DropBD()
-	database.MigrateDB()
-
 	loans := createInitialLoans()
 	borrowers := models.CreateBorrowers(len(loans))
 
 	for index, loan := range loans {
-		loan.AssignBorrower(borrowers[index])
+		borrower := borrowers[index]
+		loan.AssignBorrower(borrower)
 
 		loan.SetBorrowerMonthlyIncomes()
-		fmt.Printf("🪙 Borrower %d's monthly incomes set to %1.2f.\n",
-			int(loan.BorrowerID),
-			loan.Borrower.MonthlyIncomes,
+		borrower.Refresh()
+		fmt.Printf("🪙  Borrower #%d's monthly incomes set to %1.2f €.\n",
+			int(borrower.ID),
+			borrower.MonthlyIncomes,
 		)
 
 		loan.SetupLenders()
@@ -54,11 +53,12 @@ func prepareSimulation() {
 			loan.SetupInsurers()
 		}
 
+		loan.Activate()
 		loan.Print()
 	}
 
 	transactions := models.ListTransactions()
-	fmt.Println(len(transactions), "transactions in database")
+	fmt.Println(len(transactions), "transaction(s) in database")
 
 	for _, transaction := range transactions {
 		transaction.Print()
@@ -67,7 +67,7 @@ func prepareSimulation() {
 
 func createInitialLoans() []*models.Loan {
 	loans := models.CreateLoans(configs.Loan.InitialQuantity)
-	fmt.Printf("Initial loans created: %d loans\n", len(loans))
+	fmt.Printf("Initial loans created: %d loan(s)\n", len(loans))
 
 	for _, loan := range loans {
 		fmt.Printf("Loan #%d setup:\n", int(loan.ID))
@@ -85,11 +85,11 @@ func createInitialLoans() []*models.Loan {
 		if willThisLoanFail {
 			fmt.Println("- This loan will fail 🚨")
 			loan.SetRandomNumberOfMonthsBeforeFailure()
-			fmt.Printf("- The failure will occure after %d months, on %s\n",
-				loan.NumberOfMonthsBeforeFailure, loan.WillFailOnString())
+			fmt.Printf("- The failure will occure after %d month(s), on %s\n",
+				loan.NumberOfMonthsBeforeFailure,
+				loan.WillFailOnString(),
+			)
 		}
-
-		loans = append(loans, loan)
 	}
 	return loans
 }
@@ -123,54 +123,16 @@ func runSimulation() {
 			quantityOfInsurers := len(insurers)
 			monthString := helpers.TimeDateToString(currentDate)
 
-			// ------- Updates charts for actors -------
 			chartsManager.UpdateChartFor([]*models.Actor{&borrower}, monthString)
 			chartsManager.UpdateChartFor(lenders, monthString)
 			chartsManager.UpdateChartFor(insurers, monthString)
+			payBorrower(&borrower)
 
-			// ------- Borrower monthly incomes -------
-			fmt.Printf("🤑 Borrower #%d got paid %1.2f €!\n",
-				int(loan.BorrowerID), borrower.MonthlyIncomes)
-			models.CreateIncomeTransaction(borrower, borrower.MonthlyIncomes).Print()
-
-			if currentDate.After(loanEndDate) {
+			if currentDate.Equal(loanEndDate) {
 				fmt.Printf("Loan #%d is over. ✅\n", int(loan.ID))
 				loan.IsActive = false
 				loan.Save()
 				continue
-			}
-
-			if loan.WillFail() {
-				failureDate := loan.WillFailOnTime()
-
-				if currentDate.After(failureDate) {
-					fmt.Printf("Loan #%d just fails this month. ❌\n", int(loan.ID))
-					loan.IsActive = false
-					loan.Save()
-
-					borrower.UpdateBalance(0)
-					fmt.Printf("- Borrower #%d's balance: %1.2f €.\n", int(borrower.ID), borrower.Balance)
-
-					if loan.IsInsured {
-						fmt.Printf("- Loan #%d is insured by %d insurers. 🆘\n", int(loan.ID), quantityOfInsurers)
-
-						amountLeftToRefund := loan.Amount - loan.RefundedAmount
-						amountToRefundByLender := amountLeftToRefund / float64(quantityOfLenders)
-
-						for _, insurer := range loan.Insurers {
-							fmt.Printf("--- Insurer #%d will refund %d lenders.\n", int(insurer.ID), quantityOfLenders)
-
-							for _, lender := range lenders {
-								models.CreateTransaction(*insurer, *lender, amountToRefundByLender).Print()
-							}
-						}
-						continue
-
-					} else {
-						fmt.Printf("- Loan #%d isn't insured. 🕳\n", int(loan.ID))
-						continue
-					}
-				}
 			}
 
 			fmt.Printf("Loan #%d has %d lenders, Borrower #%d will pay %1.2f € to each of them. 🏦\n",
@@ -178,10 +140,7 @@ func runSimulation() {
 				quantityOfLenders,
 				int(borrower.ID),
 				loan.MonthlyCredit)
-			for _, lender := range loan.Lenders {
-				models.CreateTransaction(borrower, *lender, loan.MonthlyCredit).Print()
-				loan.Refund(loan.MonthlyCredit)
-			}
+			loan.MakeLendersMonthlyPayments()
 
 			if loan.IsInsured {
 				fmt.Printf("Loan #%d has %d insurers, Borrower #%d will pay %1.2f € to each of them. 🏥\n",
@@ -189,10 +148,40 @@ func runSimulation() {
 					quantityOfInsurers,
 					int(borrower.ID),
 					loan.MonthlyInsurance)
-				for _, insurer := range loan.Insurers {
-					models.CreateTransaction(borrower, *insurer, loan.MonthlyInsurance).Print()
-				}
+				loan.MakeInsurersMonthlyPayments()
 			}
+
+			// if loan.WillFail() {
+			// 	failureDate := loan.WillFailOnTime()
+
+			// 	if currentDate.After(failureDate) {
+			// 		fmt.Printf("Loan #%d just fails this month. ❌\n", int(loan.ID))
+			// 		loan.IsActive = false
+			// 		loan.Save()
+
+			// 		fmt.Printf("- Borrower #%d's balance: %1.2f €.\n", int(borrower.ID), borrower.Balance)
+
+			// 		if loan.IsInsured {
+			// 			fmt.Printf("- Loan #%d is insured by %d insurers. 🆘\n", int(loan.ID), quantityOfInsurers)
+
+			// 			amountLeftToRefund := loan.Amount - loan.RefundedAmount
+			// 			amountToRefundByLender := amountLeftToRefund / float64(quantityOfLenders)
+
+			// 			for _, insurer := range loan.Insurers {
+			// 				fmt.Printf("--- Insurer #%d will refund %d lenders.\n", int(insurer.ID), quantityOfLenders)
+
+			// 				for _, lender := range lenders {
+			// 					models.CreateTransaction(*insurer, *lender, amountToRefundByLender).Print()
+			// 				}
+			// 			}
+			// 			continue
+
+			// 		} else {
+			// 			fmt.Printf("- Loan #%d isn't insured. 🕳\n", int(loan.ID))
+			// 			continue
+			// 		}
+			// 	}
+			// }
 		}
 
 		fmt.Printf("\n--------- End of Month #%d - %s ---------\n", monthIndex+1, helpers.TimeDateToString(currentDate))
@@ -261,3 +250,16 @@ func renderSimulationResultsWindow() {
 func wipeDatabase() {
 	database.ResetDB()
 }
+
+func payBorrower(borrower *models.Actor) {
+	models.CreateIncomeTransaction(*borrower, borrower.MonthlyIncomes).Print()
+
+	fmt.Printf("🤑 Borrower #%d got paid %1.2f €!\n",
+		int(borrower.ID), borrower.MonthlyIncomes)
+}
+
+// func updateChartsWith(chartsManager charts.ChartsManager, borrower *models.Actor, lenders []*models.Actor, insurers []*models.Actor, monthString string) {
+// 	chartsManager.UpdateChartFor([]*models.Actor{borrower}, monthString)
+// 	chartsManager.UpdateChartFor(lenders, monthString)
+// 	chartsManager.UpdateChartFor(insurers, monthString)
+// }

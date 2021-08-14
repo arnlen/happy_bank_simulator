@@ -130,6 +130,18 @@ func (instance *Actor) IsInsurer() bool {
 
 // ------- Package methods -------
 
+func ListBorrowers() []*Actor {
+	return ListActors(configs.Actor.BorrowerString)
+}
+
+func ListLenders() []*Actor {
+	return ListActors(configs.Actor.LenderString)
+}
+
+func ListInsurers() []*Actor {
+	return ListActors(configs.Actor.InsurerString)
+}
+
 func ListActors(actorType string) []*Actor {
 	var actors []*Actor
 	global.Db.Preload(clause.Associations).Where("Type = ?", actorType).Find(&actors)

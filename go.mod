@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	fyne.io/fyne/v2 v2.0.3
-	github.com/bluele/factory-go v0.0.1
 	github.com/drum445/gofin v0.0.0-20210507174503-a975bf3deec0
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/stretchr/testify v1.6.0
