@@ -108,6 +108,11 @@ func (instance *Loan) Activate() {
 	instance.Borrower.Refresh()
 }
 
+func (instance *Loan) Deactivate() {
+	instance.IsActive = false
+	instance.Save()
+}
+
 func (instance *Loan) UpdateRefund(amount float64) {
 	instance.RefundedAmount += amount
 	instance.Save()
@@ -247,11 +252,17 @@ func (instance *Loan) MakeInsurersMonthlyPayments() {
 		fmt.Printf("Loan #%d isn't insured.", int(instance.ID))
 	}
 
+	amoutToPayPerInsurerByEveryLender := instance.MonthlyInsurance / float64(len(instance.Insurers))
 	for _, insurer := range instance.Insurers {
-		transaction := CreateTransaction(instance.Borrower, *insurer, instance.MonthlyInsurance)
-		transaction.Print()
+		for _, lender := range instance.Lenders {
+			transaction := CreateTransaction(*lender, *insurer, amoutToPayPerInsurerByEveryLender)
+			transaction.Print()
+		}
 	}
+}
 
+func (instance *Loan) ShouldFailThisMonth(date time.Time) bool {
+	return date.Equal(instance.WillFailOnTime())
 }
 
 func (instance *Loan) Print() {

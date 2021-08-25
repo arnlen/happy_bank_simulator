@@ -96,98 +96,121 @@ func createInitialLoans() []*models.Loan {
 
 func runSimulation() {
 	fmt.Println("\nRunning a new simulation! 🚀")
-	simulationStartDate := helpers.ParseStringToDate(configs.General.StartDate)
-	simulationDuration := configs.General.Duration
 	chartsManager := charts.ChartsManager{}
 
-	for monthIndex := 0; monthIndex < simulationDuration-1; monthIndex++ {
-		currentDate := helpers.AddMonthsToDate(simulationStartDate, monthIndex)
+	for monthIndex := 0; monthIndex < configs.General.Duration-1; monthIndex++ {
+		returnStatus := runMonthLoop(monthIndex+1, &chartsManager)
+		chartsManager.DrawChartsFromList()
 
-		fmt.Printf("\n--------- Start of Month #%d - %s 📅 ---------\n", monthIndex+1, helpers.TimeDateToString(currentDate))
-		loans := models.ListActiveLoans()
-
-		if len(loans) == 0 {
-			fmt.Println("No more active loan... 💤 ")
-			break
+		if returnStatus == "continue" {
+			continue
 		}
-		fmt.Println(len(loans), "active loans")
-
-		for _, loan := range loans {
-			loan.Print()
-
-			loanEndDate := helpers.ParseStringToDate(loan.EndDate())
-			borrower := loan.Borrower
-			lenders := loan.Lenders
-			quantityOfLenders := len(lenders)
-			insurers := loan.Insurers
-			quantityOfInsurers := len(insurers)
-			monthString := helpers.TimeDateToString(currentDate)
-
-			chartsManager.UpdateChartFor([]*models.Actor{&borrower}, monthString)
-			chartsManager.UpdateChartFor(lenders, monthString)
-			chartsManager.UpdateChartFor(insurers, monthString)
-			payBorrower(&borrower)
-
-			if currentDate.Equal(loanEndDate) {
-				fmt.Printf("Loan #%d is over. ✅\n", int(loan.ID))
-				loan.IsActive = false
-				loan.Save()
-				continue
-			}
-
-			fmt.Printf("Loan #%d has %d lenders, Borrower #%d will pay %1.2f € to each of them. 🏦\n",
-				int(loan.ID),
-				quantityOfLenders,
-				int(borrower.ID),
-				loan.MonthlyCredit)
-			loan.MakeLendersMonthlyPayments()
-
-			if loan.IsInsured {
-				fmt.Printf("Loan #%d has %d insurers, Borrower #%d will pay %1.2f € to each of them. 🏥\n",
-					int(loan.ID),
-					quantityOfInsurers,
-					int(borrower.ID),
-					loan.MonthlyInsurance)
-				loan.MakeInsurersMonthlyPayments()
-			}
-
-			// if loan.WillFail() {
-			// 	failureDate := loan.WillFailOnTime()
-
-			// 	if currentDate.After(failureDate) {
-			// 		fmt.Printf("Loan #%d just fails this month. ❌\n", int(loan.ID))
-			// 		loan.IsActive = false
-			// 		loan.Save()
-
-			// 		fmt.Printf("- Borrower #%d's balance: %1.2f €.\n", int(borrower.ID), borrower.Balance)
-
-			// 		if loan.IsInsured {
-			// 			fmt.Printf("- Loan #%d is insured by %d insurers. 🆘\n", int(loan.ID), quantityOfInsurers)
-
-			// 			amountLeftToRefund := loan.Amount - loan.RefundedAmount
-			// 			amountToRefundByLender := amountLeftToRefund / float64(quantityOfLenders)
-
-			// 			for _, insurer := range loan.Insurers {
-			// 				fmt.Printf("--- Insurer #%d will refund %d lenders.\n", int(insurer.ID), quantityOfLenders)
-
-			// 				for _, lender := range lenders {
-			// 					models.CreateTransaction(*insurer, *lender, amountToRefundByLender).Print()
-			// 				}
-			// 			}
-			// 			continue
-
-			// 		} else {
-			// 			fmt.Printf("- Loan #%d isn't insured. 🕳\n", int(loan.ID))
-			// 			continue
-			// 		}
-			// 	}
-			// }
-		}
-
-		fmt.Printf("\n--------- End of Month #%d - %s ---------\n", monthIndex+1, helpers.TimeDateToString(currentDate))
 	}
 
-	chartsManager.DrawChartsFromList()
+}
+
+func runMonthLoop(monthNumber int, chartsManager *charts.ChartsManager) string {
+	simulationStartDate := helpers.ParseStringToDate(configs.General.StartDate)
+	currentDate := helpers.AddMonthsToDate(simulationStartDate, monthNumber)
+
+	fmt.Printf("\n--------- Start of Month #%d - %s 📅 ---------\n", monthNumber, helpers.TimeDateToString(currentDate))
+	loans := models.ListActiveLoans()
+
+	if len(loans) == 0 {
+		fmt.Println("No more active loan... 💤 ")
+		return "continue"
+	}
+	fmt.Println(len(loans), "active loans")
+
+	for _, loan := range loans {
+		loan.Print()
+
+		loanEndDate := helpers.ParseStringToDate(loan.EndDate())
+		borrower := loan.Borrower
+		lenders := loan.Lenders
+		quantityOfLenders := len(lenders)
+		insurers := loan.Insurers
+		quantityOfInsurers := len(insurers)
+		monthString := helpers.TimeDateToString(currentDate)
+
+		chartsManager.UpdateChartFor([]*models.Actor{&borrower}, monthString)
+		chartsManager.UpdateChartFor(lenders, monthString)
+		chartsManager.UpdateChartFor(insurers, monthString)
+		payBorrower(&borrower)
+
+		if currentDate.Equal(loanEndDate) {
+			fmt.Printf("Loan #%d is over. ✅\n", int(loan.ID))
+			loan.Deactivate()
+			return "continue"
+		}
+
+		fmt.Printf("- Borrower #%d's balance is %1.2f €.\n", int(borrower.ID), borrower.Balance)
+		fmt.Printf("- Loan #%d's montly payments are %1.2f € (credit)",
+			int(loan.ID),
+			loan.MonthlyCredit,
+		)
+
+		if loan.IsInsured {
+			fmt.Printf(" + %1.2f € (insurance)", loan.MonthlyInsurance)
+		}
+
+		fmt.Printf(" = %1.2f €\n", loan.MonthlyPayment())
+
+		if borrower.Balance < loan.MonthlyPayment() {
+			fmt.Printf("Borrower #%d cannot pay the montly credit: loan #%d fails this month. ❌\n",
+				int(borrower.ID),
+				int(loan.ID),
+			)
+			loan.Deactivate()
+			return "continue"
+		}
+
+		fmt.Printf("Loan #%d has %d lenders, Borrower #%d will pay %1.2f € to each of them. 🏦\n",
+			int(loan.ID),
+			quantityOfLenders,
+			int(borrower.ID),
+			loan.MonthlyCredit)
+		loan.MakeLendersMonthlyPayments()
+
+		if loan.IsInsured {
+			fmt.Printf("Loan #%d has %d insurers, Lenders will pay %1.2f € to the insurer pool. 🏥\n",
+				int(loan.ID),
+				quantityOfInsurers,
+				loan.MonthlyInsurance)
+			loan.MakeInsurersMonthlyPayments()
+		}
+
+		// if loan.WillFail() && loan.ShouldFailThisMonth(currentDate) {
+		// 	fmt.Printf("Loan #%d just fails this month. ❌\n", int(loan.ID))
+		// 	loan.Deactivate()
+
+		// 		fmt.Printf("- Borrower #%d's balance: %1.2f €.\n", int(borrower.ID), borrower.Balance)
+
+		// 		if loan.IsInsured {
+		// 			fmt.Printf("- Loan #%d is insured by %d insurers. 🆘\n", int(loan.ID), quantityOfInsurers)
+
+		// 			amountLeftToRefund := loan.Amount - loan.RefundedAmount
+		// 			amountToRefundByLender := amountLeftToRefund / float64(quantityOfLenders)
+
+		// 			for _, insurer := range loan.Insurers {
+		// 				fmt.Printf("--- Insurer #%d will refund %d lenders.\n", int(insurer.ID), quantityOfLenders)
+
+		// 				for _, lender := range lenders {
+		// 					models.CreateTransaction(*insurer, *lender, amountToRefundByLender).Print()
+		// 				}
+		// 			}
+		// 			continue
+
+		// 		} else {
+		// 			fmt.Printf("- Loan #%d isn't insured. 🕳\n", int(loan.ID))
+		// 			continue
+		// 		}
+		// 	}
+		// }
+
+		fmt.Printf("\n--------- End of Month #%d - %s ---------\n", monthNumber+1, helpers.TimeDateToString(currentDate))
+	}
+	return "ok"
 }
 
 func InitApp() {
