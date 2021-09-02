@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"testing"
 
 	"happy_bank_simulator/app/configs"
@@ -11,13 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMain_prepareSimulation(t *testing.T) {
+func TestMain_PrepareSimulation(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
 	configs.Loan.InitialQuantity = 1
 	configs.Loan.InsuredQuantityRatio = 1
-	prepareSimulation()
+	PrepareSimulation()
 
 	assert.Len(models.ListLoans(), 1)
 	assert.Len(models.ListActiveLoans(), 1)
@@ -27,23 +28,23 @@ func TestMain_prepareSimulation(t *testing.T) {
 	assert.Len(models.ListTransactions(), 6)
 }
 
-func TestMain_runMonthLoop(t *testing.T) {
+func TestMain_RunMonthLoop(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
 	configs.Loan.InitialQuantity = 1
 	configs.Loan.InsuredQuantityRatio = 1
-	prepareSimulation()
+	PrepareSimulation()
 
 	loan := models.ListActiveLoans()[0]
 	borrower := loan.Borrower
 	lenders := loan.Lenders
-	lender := lenders[0]
+	lender := lenders[rand.Intn(len(lenders)-1)]
 	insurers := loan.Insurers
-	insurer := insurers[0]
+	insurer := insurers[rand.Intn(len(insurers)-1)]
 	chartsManager := charts.ChartsManager{}
 
-	runMonthLoop(0, &chartsManager)
+	RunMonthLoop(0, &chartsManager)
 
 	borrowerBeforeLoopBalance := borrower.Balance
 	lenderBeforeLoopBalance := lender.Balance

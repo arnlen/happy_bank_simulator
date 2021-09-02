@@ -127,7 +127,7 @@ func TestActorFactory_CanTakeThisLoan(t *testing.T) {
 	lender := models.CreateLender()
 
 	// Invalid case: when balance < amount to lend
-	amountPerLender := targetLoan.AmountPerLender()
+	amountPerLender := targetLoan.GetAmountLentPerLender()
 	lender.Balance = amountPerLender - 1
 	lender.Save()
 	assert.False(lender.CanTakeThisLoan(*targetLoan))
@@ -142,7 +142,7 @@ func TestActorFactory_CanTakeThisLoan(t *testing.T) {
 	insurer := models.CreateInsurer()
 
 	// Invalid case 1: when balance < amount to insure
-	amountPerInsurer := targetLoan.AmountPerInsurer()
+	amountPerInsurer := targetLoan.GetAmountInsuredPerInsurer()
 	insurer.Balance = amountPerInsurer - 1
 	insurer.Save()
 	assert.False(insurer.CanTakeThisLoan(*targetLoan))

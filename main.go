@@ -27,12 +27,12 @@ import (
 func main() {
 	database.SetupDB()
 
-	prepareSimulation()
+	PrepareSimulation()
 	// app.InitApp()
 	runSimulation()
 }
 
-func prepareSimulation() {
+func PrepareSimulation() {
 	loans := createInitialLoans()
 	borrowers := models.CreateBorrowers(len(loans))
 
@@ -99,7 +99,7 @@ func runSimulation() {
 	chartsManager := charts.ChartsManager{}
 
 	for monthIndex := 0; monthIndex < configs.General.Duration-1; monthIndex++ {
-		returnStatus := runMonthLoop(monthIndex+1, &chartsManager)
+		returnStatus := RunMonthLoop(monthIndex+1, &chartsManager)
 		chartsManager.DrawChartsFromList()
 
 		if returnStatus == "continue" {
@@ -109,7 +109,7 @@ func runSimulation() {
 
 }
 
-func runMonthLoop(monthNumber int, chartsManager *charts.ChartsManager) string {
+func RunMonthLoop(monthNumber int, chartsManager *charts.ChartsManager) string {
 	simulationStartDate := helpers.ParseStringToDate(configs.General.StartDate)
 	currentDate := helpers.AddMonthsToDate(simulationStartDate, monthNumber)
 
@@ -125,7 +125,7 @@ func runMonthLoop(monthNumber int, chartsManager *charts.ChartsManager) string {
 	for _, loan := range loans {
 		loan.Print()
 
-		loanEndDate := helpers.ParseStringToDate(loan.EndDate())
+		loanEndDate := helpers.ParseStringToDate(loan.GetEndDate())
 		borrower := loan.Borrower
 		lenders := loan.Lenders
 		quantityOfLenders := len(lenders)
@@ -147,16 +147,16 @@ func runMonthLoop(monthNumber int, chartsManager *charts.ChartsManager) string {
 		fmt.Printf("- Borrower #%d's balance is %1.2f €.\n", int(borrower.ID), borrower.Balance)
 		fmt.Printf("- Loan #%d's montly payments are %1.2f € (credit)",
 			int(loan.ID),
-			loan.MonthlyCredit,
+			loan.MonthlyAmountToRefund,
 		)
 
 		if loan.IsInsured {
-			fmt.Printf(" + %1.2f € (insurance)", loan.MonthlyInsurance)
+			fmt.Printf(" + %1.2f € (insurance)", loan.MonthlyInsuranceCost)
 		}
 
-		fmt.Printf(" = %1.2f €\n", loan.MonthlyPayment())
+		fmt.Printf(" = %1.2f €\n", loan.GetTotalMonthlyPayment())
 
-		if borrower.Balance < loan.MonthlyPayment() {
+		if borrower.Balance < loan.GetTotalMonthlyPayment() {
 			fmt.Printf("Borrower #%d cannot pay the montly credit: loan #%d fails this month. ❌\n",
 				int(borrower.ID),
 				int(loan.ID),
@@ -169,15 +169,15 @@ func runMonthLoop(monthNumber int, chartsManager *charts.ChartsManager) string {
 			int(loan.ID),
 			quantityOfLenders,
 			int(borrower.ID),
-			loan.MonthlyCredit)
-		loan.MakeLendersMonthlyPayments()
+			loan.MonthlyAmountToRefund)
+		loan.CreateMontlyTransactionsFromBorrowerToLenders()
 
 		if loan.IsInsured {
 			fmt.Printf("Loan #%d has %d insurers, Lenders will pay %1.2f € to the insurer pool. 🏥\n",
 				int(loan.ID),
 				quantityOfInsurers,
-				loan.MonthlyInsurance)
-			loan.MakeInsurersMonthlyPayments()
+				loan.MonthlyInsuranceCost)
+			loan.CreateMontlyTransactionsFromLendersToInsurers()
 		}
 
 		// if loan.WillFail() && loan.ShouldFailThisMonth(currentDate) {
@@ -223,7 +223,7 @@ func InitApp() {
 	configEditView := configs.RenderEdit()
 
 	runButton := widget.NewButtonWithIcon("Run simulation", theme.ContentAddIcon(), func() {
-		prepareSimulation()
+		PrepareSimulation()
 		runSimulation()
 		renderSimulationResultsWindow()
 	})
@@ -246,7 +246,6 @@ func InitApp() {
 
 func renderSimulationResultsWindow() {
 
-	// overviewView := overview.RenderOverview()
 	loanIndexView := loans.RenderIndex()
 	borrowerIndexView := borrowers.RenderIndex()
 	lenderIndexView := lenders.RenderIndex()
@@ -280,9 +279,3 @@ func payBorrower(borrower *models.Actor) {
 	fmt.Printf("🤑 Borrower #%d got paid %1.2f €!\n",
 		int(borrower.ID), borrower.MonthlyIncomes)
 }
-
-// func updateChartsWith(chartsManager charts.ChartsManager, borrower *models.Actor, lenders []*models.Actor, insurers []*models.Actor, monthString string) {
-// 	chartsManager.UpdateChartFor([]*models.Actor{borrower}, monthString)
-// 	chartsManager.UpdateChartFor(lenders, monthString)
-// 	chartsManager.UpdateChartFor(insurers, monthString)
-// }

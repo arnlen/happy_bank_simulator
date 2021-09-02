@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoan_EndDate(t *testing.T) {
+func TestLoan_GetEndDate(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
@@ -19,7 +19,79 @@ func TestLoan_EndDate(t *testing.T) {
 	loan.StartDate = "01/2022"
 	loan.Duration = 3
 
-	assert.Equal(loan.EndDate(), "04/2022")
+	assert.Equal(loan.GetEndDate(), "04/2022")
+}
+
+func TestLoan_GetTotalMonthlyPayment(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	loan.MonthlyAmountToRefund = 100
+	loan.MonthlyInsuranceCost = 200
+
+	assert.Equal(300.0, loan.GetTotalMonthlyPayment())
+}
+
+func TestLoan_GetAmountLentPerLender(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	loan.Amount = 1000
+	loan.Save()
+	lenders := models.CreateLenders(4)
+	loan.AssignLenders(lenders)
+
+	assert.Equal(250.0, loan.GetAmountLentPerLender())
+}
+
+func TestLoan_GetAmountInsuredPerInsurer(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	loan.Amount = 1000
+	loan.Save()
+	insurers := models.CreateInsurers(4)
+	loan.AssignInsurers(insurers)
+
+	assert.Equal(250.0, loan.GetAmountInsuredPerInsurer())
+}
+
+func TestLoan_SetRandomNumberOfMonthsBeforeFailure(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	loan.NumberOfMonthsBeforeFailure = 0
+	loan.Save()
+	loan.SetRandomNumberOfMonthsBeforeFailure()
+
+	assert.Greater(loan.NumberOfMonthsBeforeFailure, 0)
+}
+
+func TestLoan_SetBorrowerMonthlyIncomes(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoanWithBorrowerLendersInsurers()
+	assert.Equal(0.0, loan.Borrower.MonthlyIncomes)
+	loan.SetBorrowerMonthlyIncomes()
+
+	assert.Greater(loan.Borrower.MonthlyIncomes, 0.0)
+}
+
+func TestLoan_AddToRefund(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	assert.Equal(0.0, loan.RefundedAmount)
+	loan.AddToRefund(1200)
+	loan.Refresh()
+
+	assert.Equal(1200.0, loan.RefundedAmount)
 }
 
 func TestLoan_AssignBorrower(t *testing.T) {
@@ -31,6 +103,19 @@ func TestLoan_AssignBorrower(t *testing.T) {
 	loan.AssignBorrower(borrower)
 
 	assert.Equal(borrower.ID, loan.Borrower.ID)
+}
+
+func TestLoan_AssignLender(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	assert.Len(loan.Lenders, 0)
+
+	lender := models.CreateLender()
+	loan.AssignLender(lender)
+
+	assert.Len(loan.Lenders, 1)
 }
 
 func TestLoan_AssignLenders(t *testing.T) {
@@ -46,19 +131,6 @@ func TestLoan_AssignLenders(t *testing.T) {
 	assert.Len(loan.Lenders, 3)
 }
 
-func TestLoan_AssignInsurers(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	loan := models.CreateLoan()
-	assert.Len(loan.Insurers, 0)
-
-	insurers := models.CreateInsurers(3)
-	loan.AssignInsurers(insurers)
-
-	assert.Len(loan.Insurers, 3)
-}
-
 func TestLoan_AssignInsurer(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
@@ -70,6 +142,19 @@ func TestLoan_AssignInsurer(t *testing.T) {
 	loan.AssignInsurer(insurer)
 
 	assert.Len(loan.Insurers, 1)
+}
+
+func TestLoan_AssignInsurers(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	loan := models.CreateLoan()
+	assert.Len(loan.Insurers, 0)
+
+	insurers := models.CreateInsurers(3)
+	loan.AssignInsurers(insurers)
+
+	assert.Len(loan.Insurers, 3)
 }
 
 func TestLoan_Activate(t *testing.T) {
@@ -93,43 +178,21 @@ func TestLoan_Activate(t *testing.T) {
 	assert.Equal(insurer.Balance, insurer.InitialBalance)
 }
 
-func TestLoan_Refund(t *testing.T) {
+func TestLoan_Deactivate(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
 	loan := models.CreateLoan()
-	assert.Equal(0.0, loan.RefundedAmount)
-	loan.UpdateRefund(1200)
-	loan.Refresh()
+	loan.Activate()
 
-	assert.Equal(1200.0, loan.RefundedAmount)
+	assert.Equal(loan.IsActive, true)
+
+	loan.Deactivate()
+
+	assert.Equal(loan.IsActive, false)
 }
 
-func TestLoan_SetRandomNumberOfMonthsBeforeFailure(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	loan := models.CreateLoan()
-	loan.NumberOfMonthsBeforeFailure = 0
-	loan.Save()
-	loan.SetRandomNumberOfMonthsBeforeFailure()
-
-	assert.Less(0, loan.NumberOfMonthsBeforeFailure)
-}
-
-func TestLoan_WillFail(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	loanWontFail := models.CreateLoan()
-	loanWillFail := models.CreateLoan()
-	loanWillFail.SetRandomNumberOfMonthsBeforeFailure()
-
-	assert.False(loanWontFail.WillFail())
-	assert.True(loanWillFail.WillFail())
-}
-
-func TestLoan_WillFailOn(t *testing.T) {
+func TestLoan_WillFailOnTimeAndString(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
@@ -138,17 +201,6 @@ func TestLoan_WillFailOn(t *testing.T) {
 
 	assert.IsType(time.Time{}, loanWillFail.WillFailOnTime())
 	assert.IsType(*new(string), loanWillFail.WillFailOnString())
-}
-
-func TestLoan_SetBorrowerMonthlyIncomes(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	loan := models.CreateLoanWithBorrowerLendersInsurers()
-	assert.Equal(0.0, loan.Borrower.MonthlyIncomes)
-	loan.SetBorrowerMonthlyIncomes()
-
-	assert.Less(0.0, loan.Borrower.MonthlyIncomes)
 }
 
 func TestLoan_SetupLenders(t *testing.T) {
@@ -191,20 +243,46 @@ func TestLoan_SetupInsurers(t *testing.T) {
 	assert.Len(models.ListActors(configs.Actor.InsurerString), 5)
 }
 
-func TestLoan_RequiredMontlyIncomes(t *testing.T) {
+func TestLoan_CreateMontlyTransactionsFromBorrowerToLenders(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	// Case loan will fail
-	loanWillFail := models.CreateLoanWithBorrowerLendersInsurers()
-	loanWillFail.SetRandomNumberOfMonthsBeforeFailure()
-	monthlyPaymentDue := loanWillFail.MonthlyPayment()
-	assert.Less(loanWillFail.RequiredMontlyIncomes(), monthlyPaymentDue)
+	loan := models.CreateLoanWithBorrowerLendersInsurers()
+	lenders := models.CreateLenders(4)
+	loan.AssignLenders(lenders)
+	borrower := loan.Borrower
+	initialBorrowerBalance := borrower.Balance
 
-	// Case loan wont fail
-	loanWontFail := models.CreateLoanWithBorrowerLendersInsurers()
-	monthlyPaymentDue = loanWontFail.MonthlyPayment()
-	assert.Equal(loanWontFail.RequiredMontlyIncomes(), monthlyPaymentDue)
+	assert.Len(models.ListTransactions(), 0)
+
+	loan.CreateMontlyTransactionsFromBorrowerToLenders()
+	borrower.Refresh()
+
+	assert.Len(models.ListTransactions(), 5)
+	assert.Less(borrower.Balance, initialBorrowerBalance)
+}
+
+func TestLoan_CreateMontlyTransactionsFromLendersToInsurers(t *testing.T) {
+	database.ResetDB()
+	assert := assert.New(t)
+
+	// When loan isn't insured
+	unisuredLoan := models.CreateLoan()
+	unisuredLoan.IsInsured = false
+
+	unisuredLoan.CreateMontlyTransactionsFromLendersToInsurers()
+
+	assert.Len(models.ListTransactions(), 0)
+
+	// When loan is insured
+	insuredLoan := models.CreateLoan()
+	insurers := models.CreateInsurers(5)
+	insuredLoan.AssignInsurers(insurers)
+	insuredLoan.IsInsured = true
+
+	insuredLoan.CreateMontlyTransactionsFromLendersToInsurers()
+
+	assert.Len(models.ListTransactions(), 5)
 }
 
 func TestLoan_ListLoans(t *testing.T) {
@@ -226,31 +304,12 @@ func TestLoan_ListActiveLoans(t *testing.T) {
 	assert.Len(models.ListActiveLoans(), 2)
 }
 
-func TestLoan_MakeLendersMonthlyPayments(t *testing.T) {
+func TestLoan_ShouldFailThisMonth(t *testing.T) {
 	database.ResetDB()
 	assert := assert.New(t)
 
-	lenders := models.CreateLenders(3)
 	loan := models.CreateLoan()
-	loan.AssignLenders(lenders)
+	currentDate := loan.WillFailOnTime()
 
-	assert.Len(loan.Lenders, 3)
-	loan.MakeLendersMonthlyPayments()
-
-	assert.Len(models.ListTransactions(), 3)
-}
-
-func TestLoan_MakeInsurersMonthlyPayments(t *testing.T) {
-	database.ResetDB()
-	assert := assert.New(t)
-
-	insurers := models.CreateInsurers(4)
-	loan := models.CreateLoan()
-	loan.IsInsured = true
-	loan.AssignInsurers(insurers)
-
-	assert.Len(loan.Insurers, 4)
-	loan.MakeInsurersMonthlyPayments()
-
-	assert.Len(models.ListTransactions(), 4)
+	assert.True(loan.ShouldFailThisMonth(currentDate))
 }

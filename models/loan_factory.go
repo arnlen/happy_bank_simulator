@@ -31,26 +31,14 @@ func CreateLoanWithBorrowerLendersInsurers() *Loan {
 // ----- PRIVATE METHODS -----
 
 func newDefaultLoan() *Loan {
-	amount := configs.Loan.DefaultAmount
-	startDate := configs.General.StartDate
-	duration := configs.Loan.DefaultDuration
-	creditRate := configs.General.CreditInterestRate
-	insuranceRate := configs.General.InsuranceInterestRate
-
-	initialDeposit := configs.Loan.SecurityDepositRate * float64(amount)
-	monthlyCredit := calculateMonthlyCreditPayment(creditRate, duration, amount)
-	monthlyInsurance := calculateMonthlyInsurancePayment(insuranceRate, amount)
-
 	return &Loan{
-		StartDate:        startDate,
-		Duration:         configs.Loan.DefaultDuration,
-		Amount:           configs.Loan.DefaultAmount,
-		InitialDeposit:   initialDeposit,
-		CreditRate:       creditRate,
-		InsuranceRate:    insuranceRate,
-		MonthlyCredit:    monthlyCredit,
-		MonthlyInsurance: monthlyInsurance,
-		IsActive:         false,
+		StartDate:           configs.General.StartDate,
+		Duration:            configs.Loan.DefaultDuration,
+		Amount:              configs.Loan.DefaultAmount,
+		SecurityDepositRate: configs.Loan.SecurityDepositRate,
+		InterrestRate:       configs.General.CreditInterestRate,
+		InsuranceRate:       configs.General.InsuranceInterestRate,
+		IsActive:            false,
 	}
 }
 

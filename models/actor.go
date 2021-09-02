@@ -108,11 +108,11 @@ func (instance *Actor) CanTakeThisLoan(loan Loan) bool {
 	}
 
 	if instance.IsLender() {
-		amountToLend := loan.AmountPerLender()
+		amountToLend := loan.GetAmountLentPerLender()
 		return instance.NetBalance() >= amountToLend
 	}
 
-	amountToInsure := loan.AmountPerInsurer()
+	amountToInsure := loan.GetAmountInsuredPerInsurer()
 	return instance.NetBalance() >= amountToInsure
 }
 
